@@ -1,0 +1,3 @@
+git pull upstream main 拉取
+git push origin main 推送
+
