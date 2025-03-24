@@ -36,7 +36,7 @@ class HumanoidAmpEnvCfg(DirectRLEnvCfg):
     amp_observation_space = 81
 
     early_termination = True
-    termination_height = 0.5
+    termination_height = 0.6
 
     motion_file: str = MISSING
     reference_body = "torso"
@@ -66,9 +66,52 @@ class HumanoidAmpEnvCfg(DirectRLEnvCfg):
         actuators={
             "body": ImplicitActuatorCfg(
                 joint_names_expr=[".*"],
-                velocity_limit=100.0,
-                stiffness=None,
-                damping=None,
+                velocity_limit_sim=100.0,#100 
+                # stiffness=None,
+                # damping=None,
+                armature=0.01,
+                effort_limit_sim={
+                    "abdomen_.*": 150.0,
+                    "neck_.*": 20.0,
+                    "right_shoulder_.*": 70.0,
+                    "right_elbow": 60.0,
+                    "left_shoulder_.*": 70.0,
+                    "left_elbow": 60.0,
+                    "right_hip_.*": 150.0,
+                    "right_knee": 150.0,
+                    "right_ankle_.*": 100.0,
+                    "left_hip_.*": 150.0,
+                    "left_knee": 150.0,
+                    "left_ankle_.*": 100.0,
+                },
+                stiffness={
+                    "abdomen_.*": 200.0,
+                    "neck_.*": 50.0,
+                    "right_shoulder_.*": 200.0,
+                    "right_elbow": 150.0,
+                    "left_shoulder_.*": 200.0,
+                    "left_elbow": 150.0,
+                    "right_hip_.*": 300.0,
+                    "right_knee": 300.0,
+                    "right_ankle_.*": 200.0,
+                    "left_hip_.*": 300.0,
+                    "left_knee": 300.0,
+                    "left_ankle_.*": 200.0,
+                },
+                damping={
+                    "abdomen_.*": 5.0,
+                    "neck_.*": 5.0,
+                    "right_shoulder_.*": 20.0,
+                    "right_elbow": 20.0,
+                    "left_shoulder_.*": 20.0,
+                    "left_elbow": 20.0,
+                    "right_hip_.*": 10.0,
+                    "right_knee": 10.0,
+                    "right_ankle_.*": 10.0,
+                    "left_hip_.*": 10.0,
+                    "left_knee": 10.0,
+                    "left_ankle_.*": 10.0,
+                },
             ),
         },
     )

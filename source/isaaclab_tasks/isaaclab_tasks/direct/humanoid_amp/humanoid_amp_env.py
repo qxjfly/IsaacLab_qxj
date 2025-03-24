@@ -72,6 +72,7 @@ class HumanoidAmpEnv(DirectRLEnv):
 
     def _pre_physics_step(self, actions: torch.Tensor):
         self.actions = actions.clone()
+        # self.actions = torch.clamp(self.actions, min=-2.0, max=2.0)
 
     def _apply_action(self):
         target = self.action_offset + self.action_scale * self.actions
@@ -156,7 +157,7 @@ class HumanoidAmpEnv(DirectRLEnv):
         motion_torso_index = self._motion_loader.get_body_index(["torso"])[0]
         root_state = self.robot.data.default_root_state[env_ids].clone()
         root_state[:, 0:3] = body_positions[:, motion_torso_index] + self.scene.env_origins[env_ids]
-        root_state[:, 2] += 0.15  # lift the humanoid slightly to avoid collisions with the ground
+        root_state[:, 2] -= 0.25 #-0.2  # lift the humanoid slightly to avoid collisions with the ground
         root_state[:, 3:7] = body_rotations[:, motion_torso_index]
         root_state[:, 7:10] = body_linear_velocities[:, motion_torso_index]
         root_state[:, 10:13] = body_angular_velocities[:, motion_torso_index]
