@@ -1,4 +1,4 @@
-seed: 42
+seed: 42 #42
 
 
 # Models are instantiated using skrl's model instantiator utility
@@ -64,7 +64,7 @@ agent:
   class: AMP
   rollouts: 16
   learning_epochs: 6
-  mini_batches: 2
+  mini_batches: 8 #2
   discount_factor: 0.99
   lambda: 0.95
   learning_rate: 5.0e-05
@@ -85,13 +85,13 @@ agent:
   entropy_loss_scale: 0.0
   value_loss_scale: 2.5
   discriminator_loss_scale: 5.0
-  amp_batch_size: 512
+  amp_batch_size: 1024 #512
   task_reward_weight: 0.0
   style_reward_weight: 1.0
   discriminator_batch_size: 4096
   discriminator_reward_scale: 2.0
   discriminator_logit_regularization_scale: 0.05
-  discriminator_gradient_penalty_scale: 5.0
+  discriminator_gradient_penalty_scale: 5 #10 #5.0
   discriminator_weight_decay_scale: 1.0e-04
   # rewards_shaper_scale: 1.0
   time_limit_bootstrap: False
@@ -107,5 +107,5 @@ agent:
 # https://skrl.readthedocs.io/en/latest/api/trainers/sequential.html
 trainer:
   class: SequentialTrainer
-  timesteps: 100000
+  timesteps: 150000
   environment_info: log

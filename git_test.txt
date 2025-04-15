@@ -3,3 +3,15 @@ git commit -m "20250317"
 git pull upstream main 拉取
 git push origin main 推送
 
+
+urdf2usd
+python scripts/tools/convert_urdf.py '/home/ma/Learning/IsaacLab/IsaacLab_qxj/Robots_usd/K188/urdf/K188.urdf' /home/ma/Learning/IsaacLab/IsaacLab_qxj/Robots_usd/usd_sideflip/K188qxj.usd --merge-joints
+
+创建空环境
+./isaaclab.sh -p scripts/tutorials/00_sim/create_empty.py
+
+
+conda activate q_isaaclab
+0/cd source/isaaclab_tasks/isaaclab_tasks/direct/humanoid_amp/motions/ + python motion_viewer.py --file humanoid_run.npz
+1/./isaaclab.sh -p scripts/reinforcement_learning/skrl/train.py --task Isaac-Humanoid-AMP-Run-Direct-v0 --algorithm AMP
+2/./isaaclab.sh -p scripts/reinforcement_learning/skrl/play.py --task Isaac-Humanoid-AMP-Run-Direct-v0 --num_envs 16 --algorithm AMP --checkpoint /home/ma/Learning/IsaacLab/IsaacLab_qxj/logs/skrl/humanoid_amp_run/2025-03-24_18-49-46_amp_torch/checkpoints/best_agent.pt --real-time

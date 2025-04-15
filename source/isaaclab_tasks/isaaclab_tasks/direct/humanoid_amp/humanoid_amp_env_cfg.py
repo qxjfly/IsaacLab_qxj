@@ -25,7 +25,7 @@ class HumanoidAmpEnvCfg(DirectRLEnvCfg):
     """Humanoid AMP environment config (base class)."""
 
     # env
-    episode_length_s = 10.0
+    episode_length_s = 15.0 #baseline10.0  sideflip 4s
     decimation = 2
 
     # spaces
@@ -36,10 +36,11 @@ class HumanoidAmpEnvCfg(DirectRLEnvCfg):
     amp_observation_space = 81
 
     early_termination = True
-    termination_height = 0.6
+    termination_height = 0.5  # sideflip 0.25
 
     motion_file: str = MISSING
-    reference_body = "torso"
+    reference_body = "pelvis"#"torso"
+    reference_bodym = "base_link"
     reset_strategy = "random"  # default, random, random-start
     """Strategy to be followed when resetting each environment (humanoid's pose and joint states).
 
@@ -70,19 +71,33 @@ class HumanoidAmpEnvCfg(DirectRLEnvCfg):
                 # stiffness=None,
                 # damping=None,
                 armature=0.01,
+                # effort_limit_sim={
+                #     "abdomen_.*": 250.0,
+                #     "neck_.*": 20.0,
+                #     "right_shoulder_.*": 70.0,
+                #     "right_elbow": 60.0,
+                #     "left_shoulder_.*": 70.0,
+                #     "left_elbow": 60.0,
+                #     "right_hip_.*": 150.0,
+                #     "right_knee": 150.0,
+                #     "right_ankle_.*": 100.0,
+                #     "left_hip_.*": 150.0,
+                #     "left_knee": 150.0,
+                #     "left_ankle_.*": 100.0,
+                # },
                 effort_limit_sim={
-                    "abdomen_.*": 150.0,
+                    "abdomen_.*": 250.0,
                     "neck_.*": 20.0,
                     "right_shoulder_.*": 70.0,
                     "right_elbow": 60.0,
                     "left_shoulder_.*": 70.0,
                     "left_elbow": 60.0,
-                    "right_hip_.*": 150.0,
-                    "right_knee": 150.0,
-                    "right_ankle_.*": 100.0,
-                    "left_hip_.*": 150.0,
-                    "left_knee": 150.0,
-                    "left_ankle_.*": 100.0,
+                    "right_hip_.*": 300.0,
+                    "right_knee": 300.0,
+                    "right_ankle_.*": 200.0,
+                    "left_hip_.*": 300.0,
+                    "left_knee": 300.0,
+                    "left_ankle_.*": 200.0,
                 },
                 stiffness={
                     "abdomen_.*": 200.0,

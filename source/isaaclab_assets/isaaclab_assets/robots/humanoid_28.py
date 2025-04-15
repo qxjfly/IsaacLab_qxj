@@ -48,7 +48,9 @@ HUMANOID_28_CFG = ArticulationCfg(
     #*****************************************************************************************
     prim_path="{ENV_REGEX_NS}/Robot",
     spawn=sim_utils.UsdFileCfg(
-        usd_path="/home/ma/Learning/IsaacLab/IsaacLab_qxj/Robots_usd/K188_usd.usd",
+        # usd_path="/home/ma/Learning/IsaacLab/IsaacLab_qxj/Robots_usd/K188_usd.usd",
+        # usd_path="/home/ma/Learning/IsaacLab/IsaacLab_qxj/Robots_usd/usd_sideflip/K188qxj.usd",#sideflip
+        usd_path="/home/ma/Learning/IsaacLab/IsaacLab_qxj/Robots_usd/usd_dance/K188dance.usd",#dance
         rigid_props=sim_utils.RigidBodyPropertiesCfg(
             disable_gravity=None,
             max_depenetration_velocity=10.0,

@@ -13,31 +13,31 @@ from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import Lo
 ##
 # Pre-defined configs
 ##
-from isaaclab_assets import G1_MINIMAL_CFG  # isort: skip
+from isaaclab_assets import G1_MINIMAL_CFG, Wukong4_MINIMAL_CFG # isort: skip
 
 
 @configclass
 class G1Rewards(RewardsCfg):
     """Reward terms for the MDP."""
 
-    termination_penalty = RewTerm(func=mdp.is_terminated, weight=-200.0)
+    termination_penalty = RewTerm(func=mdp.is_terminated, weight=-200.0) #终止惩罚
     track_lin_vel_xy_exp = RewTerm(
         func=mdp.track_lin_vel_xy_yaw_frame_exp,
         weight=1.0,
         params={"command_name": "base_velocity", "std": 0.5},
-    )
+    )# 线速度xy跟踪奖励
     track_ang_vel_z_exp = RewTerm(
         func=mdp.track_ang_vel_z_world_exp, weight=2.0, params={"command_name": "base_velocity", "std": 0.5}
-    )
+    )# 角速度z跟踪奖励
     feet_air_time = RewTerm(
         func=mdp.feet_air_time_positive_biped,
         weight=0.25,
         params={
             "command_name": "base_velocity",
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
-            "threshold": 0.4,
+            "threshold": 0.4,# initial threshold = 0.4
         },
-    )
+    )# 迈步腾空时间奖励
     feet_slide = RewTerm(
         func=mdp.feet_slide,
         weight=-0.1,
@@ -45,20 +45,20 @@ class G1Rewards(RewardsCfg):
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
             "asset_cfg": SceneEntityCfg("robot", body_names=".*_ankle_roll_link"),
         },
-    )
+    )# 支撑脚部滑动惩罚
 
     # Penalize ankle joint limits
     dof_pos_limits = RewTerm(
         func=mdp.joint_pos_limits,
         weight=-1.0,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_ankle_pitch_joint", ".*_ankle_roll_joint"])},
-    )
+    )#惩罚踝关节超限
     # Penalize deviation from default of the joints that are not essential for locomotion
     joint_deviation_hip = RewTerm(
         func=mdp.joint_deviation_l1,
         weight=-0.1,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_yaw_joint", ".*_hip_roll_joint"])},
-    )
+    )#惩罚hip关节偏离默认值？
     joint_deviation_arms = RewTerm(
         func=mdp.joint_deviation_l1,
         weight=-0.1,
@@ -70,34 +70,33 @@ class G1Rewards(RewardsCfg):
                     ".*_shoulder_roll_joint",
                     ".*_shoulder_yaw_joint",
                     ".*_elbow_pitch_joint",
-                    ".*_elbow_roll_joint",
                 ],
             )
         },
-    )
-    joint_deviation_fingers = RewTerm(
-        func=mdp.joint_deviation_l1,
-        weight=-0.05,
-        params={
-            "asset_cfg": SceneEntityCfg(
-                "robot",
-                joint_names=[
-                    ".*_five_joint",
-                    ".*_three_joint",
-                    ".*_six_joint",
-                    ".*_four_joint",
-                    ".*_zero_joint",
-                    ".*_one_joint",
-                    ".*_two_joint",
-                ],
-            )
-        },
-    )
+    )#惩罚arm关节偏离默认值？
+    # joint_deviation_fingers = RewTerm(
+    #     func=mdp.joint_deviation_l1,
+    #     weight=-0.05,
+    #     params={
+    #         "asset_cfg": SceneEntityCfg(
+    #             "robot",
+    #             joint_names=[
+    #                 ".*_five_joint",
+    #                 ".*_three_joint",
+    #                 ".*_six_joint",
+    #                 ".*_four_joint",
+    #                 ".*_zero_joint",
+    #                 ".*_one_joint",
+    #                 ".*_two_joint",
+    #             ],
+    #         )
+    #     },
+    # )
     joint_deviation_torso = RewTerm(
         func=mdp.joint_deviation_l1,
         weight=-0.1,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names="torso_joint")},
-    )
+    )#惩罚body关节偏离默认值？
 
 
 @configclass
@@ -108,8 +107,10 @@ class G1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # post init of parent
         super().__post_init__()
         # Scene
-        self.scene.robot = G1_MINIMAL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
-        self.scene.height_scanner.prim_path = "{ENV_REGEX_NS}/Robot/torso_link"
+        # self.scene.robot = G1_MINIMAL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+        # self.scene.height_scanner.prim_path = "{ENV_REGEX_NS}/Robot/torso_link" #高度观测器的 base_link
+        self.scene.robot = Wukong4_MINIMAL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+        self.scene.height_scanner.prim_path = "{ENV_REGEX_NS}/Robot/torso_link" #高度观测器的 base_link
 
         # Randomization
         self.events.push_robot = None
@@ -149,7 +150,8 @@ class G1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
 
         # terminations
         self.terminations.base_contact.params["sensor_cfg"].body_names = "torso_link"
-
+        self.terminations.arm_contact.params["sensor_cfg"].body_names = ".*_shoulder_.*"
+        self.terminations.elbow_contact.params["sensor_cfg"].body_names = ".*_elbow_.*"
 
 @configclass
 class G1RoughEnvCfg_PLAY(G1RoughEnvCfg):

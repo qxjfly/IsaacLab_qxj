@@ -181,6 +181,9 @@ def main():
         with torch.inference_mode():
             # agent stepping
             outputs = runner.agent.act(obs, timestep=0, timesteps=0)
+            #*******************打印输出***********************
+            # print("robot_vel_x:",obs[0,63:64])
+            #*******************打印输出***********************
             # - multi-agent (deterministic) actions
             if hasattr(env, "possible_agents"):
                 actions = {a: outputs[-1][a].get("mean_actions", outputs[0][a]) for a in env.possible_agents}
