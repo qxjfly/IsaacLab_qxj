@@ -5,7 +5,7 @@
 <robot
   name="K18">
   <link
-    name="pelvis">
+    name="base_link">
     <inertial>
       <origin
         xyz="-2.10143168501414E-05 -0.000108086072940093 0.0029143928985742"
@@ -91,7 +91,7 @@
       xyz="0 0 0"
       rpy="0 0 0" />
     <parent
-      link="pelvis" />
+      link="base_link" />
     <child
       link="waist_yaw_link" />
     <axis
@@ -389,6 +389,19 @@
       upper="0.52"
       effort="30"
       velocity="20" />
+  </joint>
+  <link name="head_link">
+    <visual>
+      <geometry>
+        <sphere radius="0.0001"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <joint name="headnew_joint" type="fixed" dont_collapse="true">
+    <parent link="head"/>
+    <child link="head_link"/>
+    <origin xyz="0 0 0.15" rpy="0 0 0"/>
   </joint>
     
   <link
@@ -797,6 +810,20 @@
       effort="30"
       velocity="20" />
   </joint>
+  <link name="left_hand_link">
+    <visual>
+      <geometry>
+        <sphere radius="0.0001"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <joint name="left_hand_linknew_joint" type="fixed" dont_collapse="true">
+    <parent link="left_hand"/>
+    <child link="left_hand_link"/>
+    <origin xyz="0 0 -0.2" rpy="0 0 0"/>
+  </joint>
+  
   <link
     name="right_shoulder_pitch_link">
     <inertial>
@@ -1203,6 +1230,20 @@
       effort="30"
       velocity="20" />
   </joint>
+  <link name="right_hand_link">
+    <visual>
+      <geometry>
+        <sphere radius="0.0001"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <joint name="right_hand_linknew_joint" type="fixed" dont_collapse="true">
+    <parent link="right_hand"/>
+    <child link="right_hand_link"/>
+    <origin xyz="0 0 -0.2" rpy="0 0 0"/>
+  </joint>
+  
   <link
     name="left_hip_pitch_link">
     <inertial>
@@ -1250,7 +1291,7 @@
       xyz="0 0.11953 0"
       rpy="0 0 0" />
     <parent
-      link="pelvis" />
+      link="base_link" />
     <child
       link="left_hip_pitch_link" />
     <axis
@@ -1607,6 +1648,18 @@
       effort="30"
       velocity="20" />
   </joint>
+  <link name="left_toe_link">
+    <visual>
+      <geometry>
+        <sphere radius="0.0001"/>
+      </geometry>
+    </visual>
+  </link>
+  <joint name="left_toe_link_joint" type="fixed" dont_collapse="true">
+    <parent link="left_foot"/>
+    <child link="left_toe_link"/>
+    <origin xyz="0.15 0 0" rpy="0 0 0"/>
+  </joint>
   <link
     name="right_hip_pitch_link">
     <inertial>
@@ -1654,7 +1707,7 @@
       xyz="0 -0.12047 0"
       rpy="0 0 0" />
     <parent
-      link="pelvis" />
+      link="base_link" />
     <child
       link="right_hip_pitch_link" />
     <axis
@@ -2010,5 +2063,17 @@
       upper="0.8"
       effort="30"
       velocity="20" />
+  </joint>
+  <link name="right_toe_link">
+    <visual>
+      <geometry>
+        <sphere radius="0.0001"/>
+      </geometry>
+    </visual>
+  </link>
+  <joint name="right_toe_link_joint" type="fixed" dont_collapse="true">
+    <parent link="right_foot"/>
+    <child link="right_toe_link"/>
+    <origin xyz="0.15 0 0" rpy="0 0 0"/>
   </joint>
 </robot>

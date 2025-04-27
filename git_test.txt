@@ -4,6 +4,7 @@ git pull upstream main 拉取
 git push origin main 推送
 
 
+
 urdf2usd
 python scripts/tools/convert_urdf.py '/home/ma/Learning/IsaacLab/IsaacLab_qxj/Robots_usd/K188/urdf/K188.urdf' /home/ma/Learning/IsaacLab/IsaacLab_qxj/Robots_usd/usd_sideflip/K188qxj.usd --merge-joints
 
@@ -15,3 +16,31 @@ conda activate q_isaaclab
 0/cd source/isaaclab_tasks/isaaclab_tasks/direct/humanoid_amp/motions/ + python motion_viewer.py --file humanoid_run.npz
 1/./isaaclab.sh -p scripts/reinforcement_learning/skrl/train.py --task Isaac-Humanoid-AMP-Run-Direct-v0 --algorithm AMP
 2/./isaaclab.sh -p scripts/reinforcement_learning/skrl/play.py --task Isaac-Humanoid-AMP-Run-Direct-v0 --num_envs 16 --algorithm AMP --checkpoint /home/ma/Learning/IsaacLab/IsaacLab_qxj/logs/skrl/humanoid_amp_run/2025-03-24_18-49-46_amp_torch/checkpoints/best_agent.pt --real-time
+
+
+left_hip_pitch 0
+left_shoulder_pitch 1
+right_hip_pitch 2
+right_shoulder_pitch 3
+left_hip_roll 4
+left_shoulder_roll 5
+right_hip_roll 6
+right_shoulder_roll 7
+left_hip_yaw 8
+left_shoulder_yaw 9
+right_hip_yaw 10
+right_shoulder_yaw 11
+left_knee 12
+left_elbow_pitch 13
+right_knee 14
+right_elbow_pitch 15
+left_ankle_pitch 16
+left_wrist_yaw 17
+right_ankle_pitch 18
+right_wrist_yaw 19
+left_ankle_roll 20
+left_wrist_pitch 21
+right_ankle_roll 22
+right_wrist_pitch 23
+left_wrist_roll 24
+right_wrist_roll 25
