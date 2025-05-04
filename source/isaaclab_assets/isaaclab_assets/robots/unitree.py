@@ -605,11 +605,11 @@ CR01A_noarm_CFG = ArticulationCfg(
         ),#enabled_self_collisions=False  #default is False
     ),
     init_state=ArticulationCfg.InitialStateCfg(
-        pos=(0.0, 0.0, 0.88),
+        pos=(0.0, 0.0, 0.85),
         joint_pos={
-            ".*_hip_pitch_joint": -0.2,
-            ".*_knee_joint": 0.4,
-            ".*_ankle_pitch_joint": -0.2,
+            ".*_hip_pitch_joint": -0.35,
+            ".*_knee_joint": 0.7,
+            ".*_ankle_pitch_joint": -0.35,
         },
         joint_vel={".*": 0.0},
     ),
@@ -624,11 +624,11 @@ CR01A_noarm_CFG = ArticulationCfg(
             ],
             effort_limit={
                 ".*_hip_yaw_joint": 120.0,
-                ".*_hip_roll_joint": 120.0,
+                ".*_hip_roll_joint": 80.0,
                 ".*_hip_pitch_joint": 400.0,
                 ".*_knee_joint": 400.0,
             },
-            velocity_limit=20.0,
+            velocity_limit=10.0,
             stiffness={
                 ".*_hip_yaw_joint": 150.0,
                 ".*_hip_roll_joint": 150.0,
@@ -636,10 +636,10 @@ CR01A_noarm_CFG = ArticulationCfg(
                 ".*_knee_joint": 200.0,
             },
             damping={
-                ".*_hip_yaw_joint": 5.0,
-                ".*_hip_roll_joint": 5.0,
-                ".*_hip_pitch_joint": 5.0,
-                ".*_knee_joint": 5.0,
+                ".*_hip_yaw_joint": 3.0,
+                ".*_hip_roll_joint": 3.0,
+                ".*_hip_pitch_joint": 4.0,
+                ".*_knee_joint": 4.0,
             },
             armature={
                 ".*_hip_.*": 0.01,
@@ -652,11 +652,31 @@ CR01A_noarm_CFG = ArticulationCfg(
                 ".*_ankle_pitch_joint": 120,
                 ".*_ankle_roll_joint": 40,
             },
-            velocity_limit=20.0,
-            stiffness=20.0,
-            damping=2.0,
+            velocity_limit=10.0,
+            stiffness={
+                ".*_ankle_pitch_joint": 100.0, #30
+                ".*_ankle_roll_joint": 50.0, #20
+            },
+            # stiffness = 20,
+            damping={
+                ".*_ankle_pitch_joint": 2.0, #1
+                ".*_ankle_roll_joint": 1.0, #0.8
+            },
             armature=0.01,
         ),
+        # int hip_pitch_kp = 200;
+        # int hip_yaw_kp = 150;
+        # int hip_roll_kp = 150;
+        # int knee_kp = 200;
+        # int ankle_pitch_kp = 30;
+        # int ankle_roll_kp = 20;
+        # int hip_kd_a = 4;
+        # int hip_kd_b = 3;
+        # int hip_kd_c = 3;
+        # int knee_kd = 4;
+        # int ankle_pitch_kd =1;
+        # int ankle_roll_kd =0.8;
+
         # "arms": ImplicitActuatorCfg(
         #     joint_names_expr=[
         #         ".*_shoulder_pitch_joint",

@@ -40,9 +40,9 @@ def feet_air_time(
     last_air_time = contact_sensor.data.last_air_time[:, sensor_cfg.body_ids]
     reward = torch.sum((last_air_time - threshold) * first_contact, dim=1)
     #qxj feet air time
-    # reward = torch.clamp(reward, max=threshold*0.5)
+
     reward = -torch.abs(reward)
-    # reward = torch.exp(-reward)
+
     # no reward for zero command
     reward *= torch.norm(env.command_manager.get_command(command_name)[:, :2], dim=1) > 0.1 #default 0.1  good 0.05
     return reward
@@ -126,14 +126,17 @@ def feet_air_height_exp(
 ) -> torch.Tensor:
     # Penalize feet air height
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
-    contacts_false = contact_sensor.data.net_forces_w_history[:, :, sensor_cfg.body_ids, :].norm(dim=-1).min(dim=1)[0] < 1.0
+    contacts_false = contact_sensor.data.net_forces_w_history[:, :, sensor_cfg.body_ids, :].norm(dim=-1).min(dim=1)[0] < 10.0
 
     asset = env.scene[asset_cfg.name]
     feet_height = asset.data.body_pos_w[:, asset_cfg.body_ids, 2] #zpos
-    error_feet_height = torch.abs(feet_height - threshold)
-    # error_feet_height = torch.clamp(error_feet_height, max=0)
-    reward = torch.sum(error_feet_height * contacts_false, dim=-1)
-    return torch.exp(-reward / std**2)
+    error_feet_height =torch.clamp(feet_height - threshold, max=0) #feet_height - threshold
+    reward = torch.exp(error_feet_height/std)
+
+    # reward = torch.sum(-torch.abs(error_feet_height * contacts_false), dim=-1)
+
+    reward = torch.sum(reward * contacts_false, dim=-1)
+    return reward
 
 def root_height_l1(env: ManagerBasedRLEnv, threshold: float, asset_cfg: SceneEntityCfg) -> torch.Tensor:
     """Penalize root Z position that deviate from the default one."""
@@ -191,8 +194,8 @@ def feet_air_height_lowvel(
     # reward = std * joint_vel_re
     reward = error_feet_height
     return reward * vel_mask
-    
-def joint_deviation_zero_l1(
+
+def joint_pos_lowvel(
         env: ManagerBasedRLEnv, command_name: str, asset_cfg: SceneEntityCfg,
 ) -> torch.Tensor:
     # Penalize low vel ：ang  pitch 
@@ -204,4 +207,177 @@ def joint_deviation_zero_l1(
     
     return torch.sum(torch.abs(angle), dim=1) * vel_mask
 
+
+def feet_fly(
+    env: ManagerBasedRLEnv, command_name: str, sensor_cfg: SceneEntityCfg, threshold: float
+) -> torch.Tensor:
+    """feet fly time > threshold  get reward
+    """
+    # extract the used quantities (to enable type-hinting)
+    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+    # compute the reward
+    first_contact = contact_sensor.compute_first_contact(env.step_dt)[:, sensor_cfg.body_ids]
+    last_air_time = contact_sensor.data.last_air_time[:, sensor_cfg.body_ids]
+    reward = torch.sum((last_air_time > threshold) * first_contact, dim=1)
+    #qxj feet air time
+
+    # reward = -torch.abs(reward)
+
+    # no reward for zero command
+    reward *= torch.norm(env.command_manager.get_command(command_name)[:, :2], dim=1) > 0.1 #default 0.1  good 0.05
+    return reward
     
+def feet_symmetric(
+    env: ManagerBasedRLEnv, command_name: str, sensor_cfg: SceneEntityCfg, threshold: float
+) -> torch.Tensor:
+    """feet fly time > threshold  get reward
+    """
+    # extract the used quantities (to enable type-hinting)
+    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+    # compute the reward
+    first_contact = contact_sensor.compute_first_contact(env.step_dt)[:, sensor_cfg.body_ids]
+    last_air_time = contact_sensor.data.last_air_time[:, sensor_cfg.body_ids]
+
+    leg_current = torch.sum((last_air_time) * first_contact, dim=1)
+    leg_another = torch.sum((last_air_time) * first_contact[:, [1, 0]], dim=1)
+    #qxj feet air time
+    time_delta = torch.abs(leg_current - leg_another)
+    # reward = -torch.abs(reward)
+    reward = torch.max(torch.zeros_like(time_delta),1-time_delta/threshold)
+    # no reward for zero command
+    reward *= torch.norm(env.command_manager.get_command(command_name)[:, :2], dim=1) > 0.1 #default 0.1  good 0.05
+    return reward
+
+def feet_both_air(env, sensor_cfg: SceneEntityCfg, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
+    
+    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+    feet_forces_z = contact_sensor.data.net_forces_w[:, sensor_cfg.body_ids, 2]
+    both_air_flag = (feet_forces_z.abs() < 10.0).all(dim=-1)
+    reward = both_air_flag
+    return reward
+
+def feet_step_distance(
+    env: ManagerBasedRLEnv, command_name: str, sensor_cfg: SceneEntityCfg, asset_cfg: SceneEntityCfg, threshold: float
+) -> torch.Tensor:
+    """
+        奖励 接触脚在前（可加速度方向逻辑判断.
+        
+    """
+    # extract the used quantities (to enable type-hinting)
+    asset = env.scene[asset_cfg.name]
+    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+    # compute the reward
+    first_contact = contact_sensor.compute_first_contact(env.step_dt)[:, sensor_cfg.body_ids]
+    first_contact_false = first_contact[:, [1, 0]]
+
+    # body_quat_w = asset.data.root_quat_w[:, :]
+    body_quat_w = asset.data.root_link_quat_w[:, :]
+
+    first_contact_pos = torch.sum(asset.data.body_pos_w[:, asset_cfg.body_ids, :] * first_contact.unsqueeze(-1) ,dim=1)#zpos
+    first_contact_false_pos = torch.sum(asset.data.body_pos_w[:, asset_cfg.body_ids, :] * first_contact_false.unsqueeze(-1) ,dim=1)#zpos
+
+    step_temp = first_contact_pos - first_contact_false_pos
+    
+    step_ref_local = 0.85 * threshold * env.command_manager.get_command(command_name)[:, 0] #0501修改
+
+    step_temp_local = world_to_local_transform_qxj(body_quat_w, step_temp)
+    
+
+    reward = torch.exp(torch.clamp(step_temp_local[:,0] - step_ref_local, max=0.15)) #0501修改
+
+    # reward = step_temp_local[:,0] #default
+    return reward
+
+def world_to_local_transform_qxj(q_w: torch.Tensor, v_w: torch.Tensor) -> torch.Tensor:
+    """将世界坐标系向量转换到根链接局部坐标系
+    
+    Args:
+        q_w: 根链接四元数 (w, x, y, z), shape (N, 4)
+        v_w: 世界坐标系向量, shape (N, 3)
+    
+    Returns:
+        v_l: 局部坐标系向量, shape (N, 3)
+    """
+    # Step 1: 四元数归一化
+    q_w = torch.nn.functional.normalize(q_w, p=2, dim=-1)
+    
+    # Step 2: 计算四元数的逆 (q_w^{-1} = [w, -x, -y, -z])
+    q_inv = q_w * torch.tensor([1, -1, -1, -1], device=q_w.device)
+    
+    # Step 3: 将向量转换为四元数形式 (实部为0)
+    v_quat = torch.cat([torch.zeros_like(v_w[..., :1]), v_w], dim=-1)  # shape (N,4)
+    
+    # Step 4: 四元数旋转运算 q_inv * v_w * q_w
+    v_l_quat = quaternion_multiply_qxj(
+        quaternion_multiply_qxj(q_inv, v_quat),
+        q_w
+    )
+    
+    # Step 5: 提取虚部得到旋转后的向量
+    v_l = v_l_quat[..., 1:]
+    
+    return v_l
+def quaternion_multiply_qxj(q1: torch.Tensor, q2: torch.Tensor) -> torch.Tensor:
+    w1, x1, y1, z1 = q1[..., 0], q1[..., 1], q1[..., 2], q1[..., 3]
+    w2, x2, y2, z2 = q2[..., 0], q2[..., 1], q2[..., 2], q2[..., 3]
+    return torch.stack([
+        w1*w2 - x1*x2 - y1*y2 - z1*z2,
+        w1*x2 + x1*w2 + y1*z2 - z1*y2,
+        w1*y2 - x1*z2 + y1*w2 + z1*x2,
+        w1*z2 + x1*y2 - y1*x2 + z1*w2
+    ], dim=-1)
+
+def joint_deviation_knee(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
+    """Penalize joint positions that deviate from the default one."""
+    # extract the used quantities (to enable type-hinting)
+    asset: Articulation = env.scene[asset_cfg.name]
+    # compute out of limits constraints
+    angle = asset.data.joint_pos[:, asset_cfg.joint_ids]
+    # angle = asset.data.joint_pos[:, asset_cfg.joint_ids] - asset.data.default_joint_pos[:, asset_cfg.joint_ids]
+    angleL = angle[:, 0]
+    angleR = angle[:, 1]
+    angle_delta=torch.abs(angleL - angleR)
+    # angle_delta=torch.abs(angleL + angleR)
+    
+    return angle_delta
+
+def ang_vel_z_l2(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
+    """Penalize xy-axis base angular velocity using L2 squared kernel."""
+    # extract the used quantities (to enable type-hinting)
+    asset: RigidObject = env.scene[asset_cfg.name]
+    return torch.sum(torch.square(asset.data.root_ang_vel_b[:, 2]), dim=1)
+
+def feet_step_knee(
+    env: ManagerBasedRLEnv, command_name: str, sensor_cfg: SceneEntityCfg, asset_cfg: SceneEntityCfg, threshold: float
+) -> torch.Tensor:
+    """
+        奖励 接触脚在前（可加速度方向逻辑判断.
+        
+    """
+    # extract the used quantities (to enable type-hinting)
+    asset = env.scene[asset_cfg.name]
+    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+    # compute the reward
+    first_contact = contact_sensor.compute_first_contact(env.step_dt)[:, sensor_cfg.body_ids]
+
+    first_contact_flag = torch.logical_or(first_contact[:, 0], first_contact[:, 1])
+
+    knee_angle = asset.data.joint_pos[:, asset_cfg.joint_ids]
+    
+    knee_angle_delta = torch.abs(knee_angle - threshold)
+
+    reward = torch.sum(knee_angle_delta,dim=-1)
+
+    # reward = step_temp_local[:,0] #default
+    return reward
+
+def joint_torques_roll_l2(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
+    """Penalize joint torques applied on the articulation using L2 squared kernel.
+
+    NOTE: Only the joints configured in :attr:`asset_cfg.joint_ids` will have their joint torques contribute to the term.
+    """
+    # extract the used quantities (to enable type-hinting)
+    
+    asset: Articulation = env.scene[asset_cfg.name]
+
+    return torch.sum(torch.square(asset.data.applied_torque[:, asset_cfg.joint_ids]), dim=1)

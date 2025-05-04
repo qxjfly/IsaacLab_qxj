@@ -10,7 +10,7 @@ the curriculum introduced by the function.
 """
 
 from __future__ import annotations
-
+import numpy as np
 import torch
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
@@ -70,3 +70,114 @@ def velx_levels_vel(
         env_cfg.commands.base_velocity.ranges.lin_vel_x = (0.0, 2*max_velx) #default (0.0, 1.0)
 
     return torch.clamp(distance/distance_ref,max=1)
+
+def modify_reward_weight(env: ManagerBasedRLEnv, env_ids: Sequence[int], term_name: str, weight: float, num_steps: int):
+    """Curriculum that modifies a reward weight after some number of steps.
+
+    Args:
+        env: The learning environment.
+        env_ids: Not used since all environments are affected.
+        term_name: The name of the reward term.
+        weight: The weight of the reward term.
+        num_steps: The number of steps after which the change should be applied.
+    """
+    if env.common_step_counter > num_steps:
+        # obtain term settings
+        term_cfg = env.reward_manager.get_term_cfg(term_name)
+        # update term settings
+        term_cfg.weight = weight
+        env.reward_manager.set_term_cfg(term_name, term_cfg)
+
+# def modify_push_force(
+#         env: ManagerBasedRLEnv, 
+#         env_ids: Sequence[int], 
+#         term_name: str, 
+#         max_velocity: Sequence[float], 
+#         interval: int, 
+#         starting_step: float = 0.0
+#         ):
+#     """Curriculum that modifies the maximum push (perturbation) velocity over some intervals. 
+
+#     Args:
+#         env: The learning environment.
+#         env_ids: Not used since all environments are affected.
+#         term_name: The name of the reward term.
+#         max_velocity: The maximum velocity of the push.
+#         interval: The number of steps after which the condition is checked again
+#         starting_step: The number of steps after which the curriculum is applied.
+#     """
+#     try:
+#         term_cfg = env.event_manager.get_term_cfg('push_robot')
+#     except:
+#         # print("No push_robot term found in the event manager")
+#         return 0.0
+#     curr_setting = term_cfg.params['velocity_range']['x'][1]
+#     if env.common_step_counter < starting_step:
+#         return curr_setting
+#     if env.common_step_counter % interval == 0:
+
+        
+#         if torch.sum(env.termination_manager._term_dones["base_contact"]) < torch.sum(env.termination_manager._term_dones["time_out"]) * 2:
+#             # obtain term settings
+#             term_cfg = env.event_manager.get_term_cfg('push_robot')
+#             # update term settings
+#             curr_setting = term_cfg.params['velocity_range']['x'][1]
+#             curr_setting = np.clip(curr_setting * 1.5, 0.0, max_velocity[0])
+#             term_cfg.params['velocity_range']['x'] = (-curr_setting, curr_setting)
+#             curr_setting = term_cfg.params['velocity_range']['y'][1]
+#             curr_setting = np.clip(curr_setting * 1.5, 0.0, max_velocity[1])
+#             term_cfg.params['velocity_range']['y'] = (-curr_setting, curr_setting)
+#             env.event_manager.set_term_cfg('push_robot', term_cfg)
+        
+
+#         if torch.sum(env.termination_manager._term_dones["base_contact"]) > torch.sum(env.termination_manager._term_dones["time_out"]) / 2:
+#             # obtain term settings
+#             term_cfg = env.event_manager.get_term_cfg('push_robot')
+#             # update term settings
+#             curr_setting = term_cfg.params['velocity_range']['x'][1]
+#             curr_setting = np.clip(curr_setting - 0.2, 0.0, max_velocity[0])
+#             term_cfg.params['velocity_range']['x'] = (-curr_setting, curr_setting)
+#             curr_setting = term_cfg.params['velocity_range']['y'][1]
+#             curr_setting = np.clip(curr_setting - 0.2, 0.0, max_velocity[1])
+#             term_cfg.params['velocity_range']['y'] = (-curr_setting, curr_setting)
+#             env.event_manager.set_term_cfg('push_robot', term_cfg)
+
+#     return curr_setting
+
+def modify_command_velocity(
+    env: ManagerBasedRLEnv, 
+    env_ids: Sequence[int], 
+    term_name: str, 
+    max_velocity: Sequence[float], 
+    interval: int, 
+    starting_step: float = 0.0
+    ):
+    """Curriculum that modifies the maximum command velocity over some intervals. 
+
+    Args:
+        env: The learning environment.
+        env_ids: Not used since all environments are affected.
+        term_name: The name of the reward term.
+        max_velocity: The maximum velocity. 
+        interval: The number of steps after which the condition is checked again
+        starting_step: The number of steps after which the curriculum is applied.
+    """
+    
+    command_cfg = env.command_manager.get_term('base_velocity').cfg
+    curr_lin_vel_x = command_cfg.ranges.lin_vel_x
+
+    if env.common_step_counter < starting_step:
+        return curr_lin_vel_x[1]
+    
+    if env.common_step_counter % interval == 0:
+        term_cfg = env.reward_manager.get_term_cfg(term_name)
+        rew = env.reward_manager._episode_sums[term_name][env_ids]
+        if torch.mean(rew) / env.max_episode_length > 0.8 * term_cfg.weight * env.step_dt:
+            curr_lin_vel_x = (
+                # np.clip(curr_lin_vel_x[0] - 0.5, max_velocity[0], 0.), 
+                np.clip(curr_lin_vel_x[0], max_velocity[0], 0.), 
+                np.clip(curr_lin_vel_x[1] + 0.5, 0., max_velocity[1])
+            )
+            command_cfg.ranges.lin_vel_x = curr_lin_vel_x
+
+    return curr_lin_vel_x[1]

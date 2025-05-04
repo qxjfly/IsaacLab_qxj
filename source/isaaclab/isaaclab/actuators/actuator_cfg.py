@@ -242,7 +242,18 @@ class ActuatorNetMLPCfg(DCMotorCfg):
     The index *0* corresponds to current time-step, while *n* corresponds to n-th
     time-step in the past. The allocated history length is `max(input_idx) + 1`.
     """
+@configclass
+class IdentifiedActuatorCfg(DCMotorCfg):
+    """Configuration for direct control (DC) motor actuator model."""
 
+    class_type: type = actuator_pd.IdentifiedActuator
+
+    friction_static: float = MISSING
+    """ (in N-m)."""
+    activation_vel: float = MISSING
+    """ (in Rad/s)."""
+    friction_dynamic: float = MISSING
+    """ (in N-m-s/Rad)."""
 
 @configclass
 class DelayedPDActuatorCfg(IdealPDActuatorCfg):
@@ -275,3 +286,4 @@ class RemotizedPDActuatorCfg(DelayedPDActuatorCfg):
     This tensor describes the relationship between the joint angle (rad), the transmission ratio (in/out),
     and the output torque (N*m). The table is used to interpolate the output torque based on the joint angle.
     """
+

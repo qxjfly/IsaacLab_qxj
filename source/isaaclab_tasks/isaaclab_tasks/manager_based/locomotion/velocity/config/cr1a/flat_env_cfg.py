@@ -6,11 +6,11 @@
 from isaaclab.managers import SceneEntityCfg
 from isaaclab.utils import configclass
 
-from .rough_env_cfg import G1RoughEnvCfg
+from .rough_env_cfg import CR1ARoughEnvCfg
 
 
 @configclass
-class G1FlatEnvCfg(G1RoughEnvCfg):
+class CR1AFlatEnvCfg(CR1ARoughEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()
@@ -26,18 +26,18 @@ class G1FlatEnvCfg(G1RoughEnvCfg):
 
         # Rewards
         # self.rewards.track_lin_vel_xy_exp.weight = 1.1 #qxj
-        self.rewards.feet_slide.weight = -0.15 #qxj 
+        # self.rewards.feet_slide.weight = -0.15 #qxj 
         self.rewards.track_ang_vel_z_exp.weight = 1.0
         self.rewards.lin_vel_z_l2.weight = -0.2
-        self.rewards.action_rate_l2.weight = -0.005
-        self.rewards.dof_acc_l2.weight = -1.0e-7
-        self.rewards.feet_air_time.weight = 0.75 # 1.0 #1.5 #default 0.75
-        self.rewards.feet_air_time.params["threshold"] = 0.3 # 0.3  #0.5 default 0.4 s 
+        self.rewards.action_rate_l2.weight = -0.005 #-0.005
+        self.rewards.dof_acc_l2.weight = -5.0e-7 # default-1.0e-7
+        self.rewards.feet_air_time.weight = 1.5 #0.75 1.0 #1.5 #default 0.75
+        self.rewards.feet_air_time.params["threshold"] = 0.5 #0.65 # 0.3  #0.5 default 0.4 s 
         self.rewards.dof_torques_l2.weight = -2.0e-6
         self.rewards.dof_torques_l2.params["asset_cfg"] = SceneEntityCfg(
-            "robot", joint_names=[".*_hip_.*", ".*_knee_joint"]
+            "robot", joint_names=[".*_hip_.*", ".*_knee_joint", ".*_ankle_.*"]
         )
-        self.rewards.joint_deviation_hip.weight = -1.0  #default -0.5
+        self.rewards.joint_deviation_hip.weight = -0.25  #default -0.5
         # Commands
         self.commands.base_velocity.ranges.lin_vel_x = (0.0, 1.0) #default (0.0, 1.0)
         self.commands.base_velocity.ranges.lin_vel_y = (-0.5, 0.5)
@@ -45,7 +45,7 @@ class G1FlatEnvCfg(G1RoughEnvCfg):
         self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0)# qxj
         
 
-class G1FlatEnvCfg_PLAY(G1FlatEnvCfg):
+class CR1AFlatEnvCfg_PLAY(CR1AFlatEnvCfg):
     def __post_init__(self) -> None:
         # post init of parent
         super().__post_init__()

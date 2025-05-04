@@ -14,10 +14,10 @@ from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import Lo
 # Pre-defined configs
 ##
 from isaaclab_assets import G1_MINIMAL_CFG, Wukong4_MINIMAL_CFG, CR01A_MINIMAL_CFG, CR01A_noarm_MINIMAL_CFG # isort: skip
-
+from isaaclab_assets import CR01ADC_MINIMAL_CFG, CR01ADC_noarm_MINIMAL_CFG # 
 
 @configclass
-class G1Rewards(RewardsCfg):
+class CR1ARewards(RewardsCfg):
     """Reward terms for the MDP."""
 
     termination_penalty = RewTerm(func=mdp.is_terminated, weight=-200.0) #终止惩罚
@@ -30,7 +30,7 @@ class G1Rewards(RewardsCfg):
         func=mdp.track_ang_vel_z_world_exp, weight=2.0, params={"command_name": "base_velocity", "std": 0.5}
     )# 角速度z跟踪奖励
     feet_air_time = RewTerm(
-        func=mdp.feet_air_time_positive_biped,#feet_air_time_positive_biped
+        func=mdp.feet_air_time,#feet_air_time_positive_biped
         weight=0.25,
         params={
             "command_name": "base_velocity",
@@ -58,7 +58,7 @@ class G1Rewards(RewardsCfg):
     joint_deviation_hip = RewTerm(
         func=mdp.joint_deviation_l1,
         weight=-0.1,
-        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_yaw_joint", ".*_hip_roll_joint"])},
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_yaw_joint", ".*_hip_roll_joint", ".*_ankle_roll_joint"])},
     )#惩罚hip关节偏离默认值？ knee?
     
     # joint_deviation_arms = RewTerm(
@@ -101,19 +101,19 @@ class G1Rewards(RewardsCfg):
     #     weight=-0.1,
     #     params={"asset_cfg": SceneEntityCfg("robot", joint_names="torso_joint")},
     # )#惩罚torso关节偏离默认值？
-    # feet_air_height = RewTerm(
-    #     func=mdp.feet_air_height_exp,
-    #     weight=0.5,
-    #     params={
-    #         "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
-    #         "asset_cfg": SceneEntityCfg("robot", body_names=".*_ankle_roll_link"),
-    #         "threshold": 0.1,
-    #         "std": 0.25,
-    #     },
-    # ) #迈步腾空高度奖励
+    feet_air_height = RewTerm(
+        func=mdp.feet_air_height_exp,
+        weight= 0.08, #0.25, #0.5,
+        params={
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
+            "asset_cfg": SceneEntityCfg("robot", body_names=".*_ankle_roll_link"),
+            "threshold": 0.15,
+            "std": 0.5,
+        },
+    ) #迈步腾空高度奖励
     root_height = RewTerm(
         func=mdp.root_height_l1,
-        weight=-0.2, #-0.2,
+        weight=-0.85, #-0.2,
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names="torso_link"),
             "threshold": 0.84,
@@ -131,22 +131,22 @@ class G1Rewards(RewardsCfg):
     #     },
     # )#惩罚迈步不对称
 
-    # feet_air_height_lowel = RewTerm(
-    #     func=mdp.feet_air_height_lowvel,
-    #     weight=-50,
-    #     params={
-    #         "command_name": "base_velocity",
-    #         "asset_cfg": SceneEntityCfg("robot", body_names=".*_ankle_roll_link"),
-    #         "threshold": 0.051, 
-    #         "std": 1.0,
-    #     },
-    # )#惩罚低速迈腿
-    # joint_deviation_hip_zero = RewTerm(
-    #     func=mdp.joint_deviation_zero_l1,
-    #     weight=-5,
-    #     params={"command_name": "base_velocity",
-    #             "asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_pitch_joint", ".*_knee_joint", ".*_ankle_pitch_joint"])},
-    # )#在低速时惩罚leg_pitch_joint关节偏离默认值？ knee?
+    feet_air_height_lowel = RewTerm(
+        func=mdp.feet_air_height_lowvel,
+        weight=-50,
+        params={
+            "command_name": "base_velocity",
+            "asset_cfg": SceneEntityCfg("robot", body_names=".*_ankle_roll_link"),
+            "threshold": 0.051, 
+            "std": 1.0,
+        },
+    )#惩罚低速迈腿
+    joint_deviation_hip_zero = RewTerm(
+        func=mdp.joint_pos_lowvel,
+        weight=-2.5,
+        params={"command_name": "base_velocity",
+                "asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_pitch_joint", ".*_knee_joint", ".*_ankle_pitch_joint"])},
+    )#在低速时惩罚leg_pitch_joint关节偏离默认值？ knee?
     # feet_fly = RewTerm(
     #     func=mdp.feet_fly,
     #     weight=0.5,
@@ -167,27 +167,49 @@ class G1Rewards(RewardsCfg):
     # )# 
     feet_both_air = RewTerm(
         func=mdp.feet_both_air,
-        weight=-30,
+        weight=-50,
         params={
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
             "asset_cfg": SceneEntityCfg("robot", body_names=".*_ankle_roll_link"),
         },
     )# 
-    # step_distance = RewTerm(
-    #     func=mdp.feet_step_distance,
-    #     weight=0.2,
+    step_distance = RewTerm(
+        func=mdp.feet_step_distance,
+        weight=0.01,
+        params={
+            "command_name": "base_velocity",
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
+            "asset_cfg": SceneEntityCfg("robot", body_names=".*_ankle_roll_link"),
+            "threshold": 0.5,# initial threshold = 0.5 步态周期
+            
+        },
+    )#惩罚迈步不对称
+    # joint_deviation_knee = RewTerm(
+    #     func=mdp.joint_deviation_knee,
+    #     weight=-0.1,
+    #     params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_knee_joint"])},
+    # )#惩罚hip关节偏离默认值？ knee?
+
+    # step_knee = RewTerm(
+    #     func=mdp.feet_step_knee,
+    #     weight=-0.05,
     #     params={
     #         "command_name": "base_velocity",
     #         "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
-    #         "asset_cfg": SceneEntityCfg("robot", body_names=".*_ankle_roll_link"),
-    #         "threshold": 0.5,# initial threshold = 0.5 步态周期
+    #         "asset_cfg": SceneEntityCfg("robot", joint_names=".*_knee_joint"),
+    #         "threshold": 0.08,# initial threshold = 0.5 步态周期
             
     #     },
-    # )#惩罚迈步不对称
+    # )#惩罚迈步knee angel
+    joint_roll_torque_l2 = RewTerm(
+        func=mdp.joint_torques_roll_l2,
+        weight=-5.0e-5,
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_roll_joint"])},
+    )#惩罚roll关节力矩
 
 @configclass
-class G1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
-    rewards: G1Rewards = G1Rewards()
+class CR1ARoughEnvCfg(LocomotionVelocityRoughEnvCfg):
+    rewards: CR1ARewards = CR1ARewards()
 
     def __post_init__(self):
         # post init of parent
@@ -198,6 +220,7 @@ class G1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # self.scene.robot = Wukong4_MINIMAL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
         # self.scene.robot = CR01A_MINIMAL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
         self.scene.robot = CR01A_noarm_MINIMAL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+        # self.scene.robot = CR01ADC_noarm_MINIMAL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
         self.scene.height_scanner.prim_path = "{ENV_REGEX_NS}/Robot/torso_link" #高度观测器的 base_link
 
         # Randomization
@@ -220,7 +243,7 @@ class G1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # Rewards
         self.rewards.lin_vel_z_l2.weight = 0.0
         self.rewards.undesired_contacts = None
-        self.rewards.flat_orientation_l2.weight = -1.5 # default: -1.0
+        self.rewards.flat_orientation_l2.weight = -3.5 # default: -1.0
         self.rewards.action_rate_l2.weight = -0.005
         self.rewards.dof_acc_l2.weight = -1.25e-7
         self.rewards.dof_acc_l2.params["asset_cfg"] = SceneEntityCfg(
@@ -228,7 +251,7 @@ class G1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         )
         self.rewards.dof_torques_l2.weight = -1.5e-7
         self.rewards.dof_torques_l2.params["asset_cfg"] = SceneEntityCfg(
-            "robot", joint_names=[".*_hip_.*", ".*_knee_joint", ".*_ankle_.*"]
+            "robot", joint_names=[".*_hip_.*", ".*_knee_joint"]
         )
 
         # Commands
@@ -242,7 +265,7 @@ class G1RoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # self.terminations.elbow_contact.params["sensor_cfg"].body_names = ".*_elbow_.*"
 
 @configclass
-class G1RoughEnvCfg_PLAY(G1RoughEnvCfg):
+class CR1ARoughEnvCfg_PLAY(CR1ARoughEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()

@@ -17,7 +17,7 @@ from isaaclab.managers import RewardTermCfg as RewTerm
 from isaaclab.managers import SceneEntityCfg
 from isaaclab.managers import TerminationTermCfg as DoneTerm
 from isaaclab.scene import InteractiveSceneCfg
-from isaaclab.sensors import ContactSensorCfg, RayCasterCfg, patterns
+from isaaclab.sensors import ContactSensorCfg, RayCasterCfg,ImuCfg, patterns
 from isaaclab.terrains import TerrainImporterCfg
 from isaaclab.utils import configclass
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR, ISAACLAB_NUCLEUS_DIR
@@ -71,6 +71,17 @@ class MySceneCfg(InteractiveSceneCfg):
         debug_vis=False,
         mesh_prim_paths=["/World/ground"],
     )
+    #imu
+    # imu_RF = ImuCfg(prim_path="{ENV_REGEX_NS}/Robot/LF_FOOT", debug_vis=True)
+    imu = ImuCfg(
+        prim_path="{ENV_REGEX_NS}/Robot/torso_link",
+        offset=ImuCfg.OffsetCfg(
+        pos=(0.0, 0.0, 0.0),        # 相对于父框架的坐标 (x, y, z)
+        rot=(1.0, 0.0, 0.0, 0.0)    # 四元数 (w, x, y, z) 表示无旋转
+        ),
+        debug_vis=False,
+        gravity_bias=(0.0, 0.0, 9.81),
+    )
     contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/.*", history_length=3, track_air_time=True)
     # lights
     sky_light = AssetBaseCfg(
@@ -121,7 +132,8 @@ class ObservationsCfg:
         """Observations for policy group."""
 
         # observation terms (order preserved)
-        base_lin_vel = ObsTerm(func=mdp.base_lin_vel, noise=Unoise(n_min=-0.1, n_max=0.1))#3
+        # base_lin_vel = ObsTerm(func=mdp.base_lin_vel, noise=Unoise(n_min=-0.1, n_max=0.1))#3
+        # base_lin_acc = ObsTerm(func=mdp.imu_lin_acc, noise=Unoise(n_min=-0.1, n_max=0.1))#3
         base_ang_vel = ObsTerm(func=mdp.base_ang_vel, noise=Unoise(n_min=-0.2, n_max=0.2))#3
         projected_gravity = ObsTerm(
             func=mdp.projected_gravity,
@@ -163,15 +175,42 @@ class EventCfg:
         },
     )
 
+    # scale_all_link_masses = EventTerm(
+    #     func=mdp.randomize_rigid_body_mass,
+    #     mode="startup",
+    #     params={"asset_cfg": SceneEntityCfg("robot", body_names=".*"), "mass_distribution_params": (0.9, 1.1),
+    #             "operation": "scale"},
+    # )
+
     add_base_mass = EventTerm(
         func=mdp.randomize_rigid_body_mass,
         mode="startup",
         params={
-            "asset_cfg": SceneEntityCfg("robot", body_names="base"),
+            "asset_cfg": SceneEntityCfg("robot", body_names="torso_link"),
             "mass_distribution_params": (-5.0, 5.0),
             "operation": "add",
         },
     )
+    # scale_all_joint_armature = EventTerm(
+    #     func=mdp.randomize_joint_parameters,
+    #     mode="startup",
+    #     params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*"]), "armature_distribution_params": (1.0, 1.05),
+    #             "operation": "scale"},
+    # )
+
+    # add_all_joint_default_pos = EventTerm(
+    #     func=mdp.randomize_joint_default_pos,
+    #     mode="startup",
+    #     params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*"]), "pos_distribution_params": (-0.05, 0.05),
+    #             "operation": "add"},
+    # )
+
+    # scale_all_joint_friction_model = EventTerm(
+    #     func=mdp.randomize_joint_friction_model,
+    #     mode="startup",
+    #     params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*"]), "friction_distribution_params": (0.9, 1.1),
+    #             "operation": "scale"},
+    # )
 
     # reset
     base_external_force_torque = EventTerm(
@@ -264,14 +303,14 @@ class TerminationsCfg:
         func=mdp.illegal_contact,
         params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names="base"), "threshold": 1.0},
     )
-    arm_contact = DoneTerm(
-        func=mdp.illegal_contact,
-        params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names="base"), "threshold": 1.0},
-    )
-    elbow_contact = DoneTerm(
-        func=mdp.illegal_contact,
-        params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names="base"), "threshold": 1.0},
-    )
+    # arm_contact = DoneTerm(
+    #     func=mdp.illegal_contact,
+    #     params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names="base"), "threshold": 1.0},
+    # )
+    # elbow_contact = DoneTerm(
+    #     func=mdp.illegal_contact,
+    #     params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names="base"), "threshold": 1.0},
+    # )
 
 
 @configclass
@@ -279,7 +318,14 @@ class CurriculumCfg:
     """Curriculum terms for the MDP."""
 
     terrain_levels = CurrTerm(func=mdp.terrain_levels_vel)
-    # velx_levels = CurrTerm(func=mdp.velx_levels_vel)
+    # push force follows curriculum
+    # push_force_levels = CurrTerm(func=mdp.modify_push_force,
+    #                              params={"term_name": "push_robot", "max_velocity": [3.0, 3.0], "interval": 200 * 24,
+    #                                      "starting_step": 1500 * 24})
+    # command vel follows curriculum
+    # command_vel = CurrTerm(func=mdp.modify_command_velocity,
+    #                        params={"term_name": "track_lin_vel_xy_exp", "max_velocity": [-1.5, 3.0],
+    #                                "interval": 200 * 24, "starting_step": 5000 * 24})
 
 
 ##
