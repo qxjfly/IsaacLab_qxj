@@ -19,25 +19,33 @@ from isaaclab_assets import CR01ADC_MINIMAL_CFG, CR01ADC_noarm_MINIMAL_CFG #
 @configclass
 class CR1ARewards(RewardsCfg):
     """Reward terms for the MDP."""
+    #终止惩罚
+    termination_penalty = RewTerm(func=mdp.is_terminated, weight=-200.0) 
 
-    termination_penalty = RewTerm(func=mdp.is_terminated, weight=-200.0) #终止惩罚
+    # 线速度xy跟踪奖励
     track_lin_vel_xy_exp = RewTerm(
         func=mdp.track_lin_vel_xy_yaw_frame_exp,
         weight=1.0,
         params={"command_name": "base_velocity", "std": 0.5},
-    )# 线速度xy跟踪奖励
+    )
+
+    # 角速度z跟踪奖励
     track_ang_vel_z_exp = RewTerm(
         func=mdp.track_ang_vel_z_world_exp, weight=2.0, params={"command_name": "base_velocity", "std": 0.5}
-    )# 角速度z跟踪奖励
+    )
+
+    # 迈步腾空时间奖励
     feet_air_time = RewTerm(
-        func=mdp.feet_air_time,#feet_air_time_positive_biped
+        func=mdp.feet_air_time_positive_biped,#feet_air_time_positive_biped  #feet_air_time
         weight=0.25,
         params={
             "command_name": "base_velocity",
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
             "threshold": 0.4,# initial threshold = 0.4
         },
-    )# 迈步腾空时间奖励
+    )
+
+    # 支撑脚部滑动惩罚
     feet_slide = RewTerm(
         func=mdp.feet_slide,
         weight=-0.1,
@@ -45,22 +53,25 @@ class CR1ARewards(RewardsCfg):
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
             "asset_cfg": SceneEntityCfg("robot", body_names=".*_ankle_roll_link"),
         },
-    )# 支撑脚部滑动惩罚
+    )
 
-    # Penalize ankle joint limits
+    #惩罚踝关节超限
     dof_pos_limits = RewTerm(
         func=mdp.joint_pos_limits,
         weight=-1.0,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_ankle_pitch_joint", ".*_ankle_roll_joint"])},
         # params={"asset_cfg": SceneEntityCfg("robot", joint_names=["right_wrist_roll_joint"])},
-    )#惩罚踝关节超限
-    # Penalize deviation from default of the joints that are not essential for locomotion
+    )
+
+
+    # 惩罚hip关节roll yaw ankle关节 roll偏离默认值
     joint_deviation_hip = RewTerm(
         func=mdp.joint_deviation_l1,
         weight=-0.1,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_yaw_joint", ".*_hip_roll_joint", ".*_ankle_roll_joint"])},
-    )#惩罚hip关节偏离默认值？ knee?
+    )
     
+    #惩罚arm关节偏离默认值
     # joint_deviation_arms = RewTerm(
     #     func=mdp.joint_deviation_l1,
     #     weight=-0.1,
@@ -76,7 +87,7 @@ class CR1ARewards(RewardsCfg):
     #             ],
     #         )
     #     },
-    # )#惩罚arm关节偏离默认值？
+    # )
 
     # joint_deviation_fingers = RewTerm(
     #     func=mdp.joint_deviation_l1,
@@ -96,21 +107,27 @@ class CR1ARewards(RewardsCfg):
     #         )
     #     },
     # )
+
+    #惩罚torso关节偏离默认值
     # joint_deviation_torso = RewTerm(
     #     func=mdp.joint_deviation_l1,
     #     weight=-0.1,
     #     params={"asset_cfg": SceneEntityCfg("robot", joint_names="torso_joint")},
-    # )#惩罚torso关节偏离默认值？
+    # )
+
+    #迈步腾空高度奖励
     feet_air_height = RewTerm(
         func=mdp.feet_air_height_exp,
-        weight= 0.08, #0.25, #0.5,
+        weight= 0.25, #0.1, #0.25, #0.5,
         params={
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
             "asset_cfg": SceneEntityCfg("robot", body_names=".*_ankle_roll_link"),
-            "threshold": 0.15,
+            "threshold": 0.3,
             "std": 0.5,
         },
-    ) #迈步腾空高度奖励
+    ) 
+
+    #惩罚root_link高度
     root_height = RewTerm(
         func=mdp.root_height_l1,
         weight=-0.85, #-0.2,
@@ -118,10 +135,11 @@ class CR1ARewards(RewardsCfg):
             "asset_cfg": SceneEntityCfg("robot", body_names="torso_link"),
             "threshold": 0.84,
         },
-    )#惩罚root高度
+    )
 
-    # step_distance = RewTerm(
-    #     func=mdp.step_distance,
+    #奖励 hip_pitch_ang  迈步触地时的角度
+    # step_hip_pitch_ang = RewTerm(
+    #     func=mdp.step_hip_pitch_ang,
     #     weight=0.1,
     #     params={
     #         "command_name": "base_velocity",
@@ -129,9 +147,10 @@ class CR1ARewards(RewardsCfg):
     #         "threshold": 0.5,# initial threshold = 0.5 步态周期
     #         "asset_cfg": SceneEntityCfg("robot", joint_names=".*_hip_pitch_joint"),
     #     },
-    # )#惩罚迈步不对称
+    # )
 
-    feet_air_height_lowel = RewTerm(
+    #惩罚低速迈腿
+    feet_air_height_lowvel = RewTerm(
         func=mdp.feet_air_height_lowvel,
         weight=-50,
         params={
@@ -140,13 +159,17 @@ class CR1ARewards(RewardsCfg):
             "threshold": 0.051, 
             "std": 1.0,
         },
-    )#惩罚低速迈腿
+    )
+
+    #在低速时惩罚leg_pitch_joint关节偏离默认值
     joint_deviation_hip_zero = RewTerm(
         func=mdp.joint_pos_lowvel,
         weight=-2.5,
         params={"command_name": "base_velocity",
                 "asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_pitch_joint", ".*_knee_joint", ".*_ankle_pitch_joint"])},
-    )#在低速时惩罚leg_pitch_joint关节偏离默认值？ knee?
+    )
+
+    # 奖励腾空时间>期望 稀疏奖励
     # feet_fly = RewTerm(
     #     func=mdp.feet_fly,
     #     weight=0.5,
@@ -155,16 +178,20 @@ class CR1ARewards(RewardsCfg):
     #         "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
     #         "threshold": 0.2,# initial threshold = 0.4
     #     },
-    # )# 
+    # )
+
+    # 腾空时间  对称  奖励 
     # feet_sym = RewTerm(
     #     func=mdp.feet_symmetric,
     #     weight=0.25,
     #     params={
     #         "command_name": "base_velocity",
     #         "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
-    #         "threshold": 0.1,# initial threshold = 0.4
+    #         "threshold": 0.05,# initial threshold = 0.4
     #     },
-    # )# 
+    # )
+
+    #双脚腾空惩罚
     feet_both_air = RewTerm(
         func=mdp.feet_both_air,
         weight=-50,
@@ -172,10 +199,12 @@ class CR1ARewards(RewardsCfg):
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
             "asset_cfg": SceneEntityCfg("robot", body_names=".*_ankle_roll_link"),
         },
-    )# 
+    )
+
+    #步长奖励
     step_distance = RewTerm(
-        func=mdp.feet_step_distance,
-        weight=0.01,
+        func=mdp.feet_step_distance2,
+        weight=0.1,
         params={
             "command_name": "base_velocity",
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
@@ -183,29 +212,111 @@ class CR1ARewards(RewardsCfg):
             "threshold": 0.5,# initial threshold = 0.5 步态周期
             
         },
-    )#惩罚迈步不对称
-    # joint_deviation_knee = RewTerm(
-    #     func=mdp.joint_deviation_knee,
+    )
+
+    #惩罚knee2knee不对称
+    # joint_deviation_knee2knee = RewTerm(
+    #     func=mdp.joint_deviation_knee2knee,
     #     weight=-0.1,
     #     params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_knee_joint"])},
-    # )#惩罚hip关节偏离默认值？ knee?
+    # )
 
-    # step_knee = RewTerm(
-    #     func=mdp.feet_step_knee,
-    #     weight=-0.05,
+    # 惩罚迈步knee angel 不跟踪期望
+    step_knee = RewTerm(
+        func=mdp.feet_step_knee,
+        weight=-0.5, #-0.25, #-0.025,
+        params={
+            "command_name": "base_velocity",
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
+            "asset_cfg": SceneEntityCfg("robot", joint_names=".*_knee_joint"),
+            "threshold": 0.08,#
+        },
+    )
+
+    #惩罚roll关节力矩
+    joint_roll_torque_l2 = RewTerm(
+        func=mdp.joint_torques_roll_l2,
+        weight=-2.0e-5,# default -5.0e-5
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_roll_joint"])},
+    )
+
+    #惩罚ankle_pitch 不平行身体
+    joint_deviation_ankle_pitch = RewTerm(
+        func=mdp.joint_deviation_anklepitch_l1,
+        weight=-0.08,
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_pitch_joint", ".*_knee_joint", ".*_ankle_pitch_joint"])},
+    )
+
+    #迈步接触地面力的奖励
+    feet_contact_force = RewTerm(
+        func=mdp.feet_contact_force_exp,
+        weight= 0.05,
+        params={
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
+            "asset_cfg": SceneEntityCfg("robot", body_names=".*_ankle_roll_link"),
+            "threshold": 0.15,
+            "std": 500,
+        },
+    ) 
+
+    # 
+    # feet_step_symmetric_knee = RewTerm(
+    #     func=mdp.feet_step_symmetric_knee,
+    #     weight=-0.1, #-0.025,
     #     params={
     #         "command_name": "base_velocity",
     #         "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
     #         "asset_cfg": SceneEntityCfg("robot", joint_names=".*_knee_joint"),
-    #         "threshold": 0.08,# initial threshold = 0.5 步态周期
-            
+    #         "threshold": 0.08,#
     #     },
-    # )#惩罚迈步knee angel
-    joint_roll_torque_l2 = RewTerm(
-        func=mdp.joint_torques_roll_l2,
-        weight=-5.0e-5,
-        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_roll_joint"])},
-    )#惩罚roll关节力矩
+    # )
+    feet_step_symmetric_hip = RewTerm(
+        func=mdp.feet_step_symmetric_hip,
+        weight=-0.1, #-0.025,
+        params={
+            "command_name": "base_velocity",
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
+            "asset_cfg": SceneEntityCfg("robot", joint_names=".*_hip_pitch_joint"),
+            "threshold": 0.08,#
+        },
+    )
+
+    feet_step_current_airtime = RewTerm(
+        func=mdp.feet_step_current_airtime,
+        weight=-20, #-0.025,
+        params={
+            "command_name": "base_velocity",
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
+            "asset_cfg": SceneEntityCfg("robot", joint_names=".*_hip_pitch_joint"),
+            "threshold": 0.6,#
+        },
+    )
+    # 新增步态周期一致性奖励
+    step_phase_consistency = RewTerm(
+        func=mdp.step_phase_consistency,
+        weight=1.5,  # 增加周期一致性奖励
+        params={
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
+            "phase_threshold": 0.2,  # 允许20%的相位误差
+        },
+    )
+    
+    joint_knee_pos_l2 = RewTerm(
+        func=mdp.joint_knee_pos_l2,
+        weight=-2,# default -5.0e-5
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_knee_joint"])},
+    )
+
+    # step_length_reward = RewTerm(
+    #     func=mdp.reward_step_length,
+    #     weight=1.0,
+    #     params={
+    #         "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
+    #         "asset_cfg": SceneEntityCfg("robot"),
+    #         "target_range": (0.4, 0.5),
+    #         "reward_scale": 1.0,
+    #     },
+    # )
 
 @configclass
 class CR1ARoughEnvCfg(LocomotionVelocityRoughEnvCfg):
