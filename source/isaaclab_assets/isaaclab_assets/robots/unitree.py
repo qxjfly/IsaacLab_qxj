@@ -605,11 +605,11 @@ CR01A_noarm_CFG = ArticulationCfg(
         ),#enabled_self_collisions=False  #default is False
     ),
     init_state=ArticulationCfg.InitialStateCfg(
-        pos=(0.0, 0.0, 0.85),
+        pos=(0.0, 0.0, 0.88),
         joint_pos={
-            ".*_hip_pitch_joint": -0.35,
-            ".*_knee_joint": 0.7,
-            ".*_ankle_pitch_joint": -0.35,
+            ".*_hip_pitch_joint": -0.1,
+            ".*_knee_joint": 0.2,
+            ".*_ankle_pitch_joint": -0.1,
         },
         joint_vel={".*": 0.0},
     ),

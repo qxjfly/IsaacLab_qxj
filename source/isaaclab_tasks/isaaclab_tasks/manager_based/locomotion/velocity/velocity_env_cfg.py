@@ -325,11 +325,12 @@ class CurriculumCfg:
     # command vel follows curriculum
     # command_vel = CurrTerm(func=mdp.modify_command_velocity,
     #                        params={"term_name": "track_lin_vel_xy_exp", "max_velocity": [-1.5, 3.0],
-    #                                "interval": 200 * 24, "starting_step": 5000 * 24})
+    #                                "interval": 2000 * 50, "starting_step": 20000 * 50})
+    
     # modify_reward_weight = CurrTerm(func=mdp.modify_reward_weight,
-    #                        params={"term_name": "feet_air_time",
-    #                                "weight": 2.0, 
-    #                                "num_steps": 4096*200})
+    #                        params={"term_name": "step_knee2",
+    #                                "weight": 0.1, 
+    #                                "num_steps": 20*50*100})
 
 
 ##
