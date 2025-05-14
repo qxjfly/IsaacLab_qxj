@@ -330,7 +330,7 @@ class CurriculumCfg:
     # modify_reward_weight = CurrTerm(func=mdp.modify_reward_weight,
     #                        params={"term_name": "step_knee2",
     #                                "weight": 0.1, 
-    #                                "num_steps": 20*50*100})
+    #                                "num_steps": 20*50*10})
 
 
 ##

@@ -31,13 +31,13 @@ class CR1AFlatEnvCfg(CR1ARoughEnvCfg):
         self.rewards.lin_vel_z_l2.weight = -0.2
         self.rewards.action_rate_l2.weight = -0.005 #-0.005
         self.rewards.dof_acc_l2.weight = -5.0e-7 # default-1.0e-7
-        self.rewards.feet_air_time.weight = 1.2 #0.75 1.0 #1.5 #default 0.75
-        self.rewards.feet_air_time.params["threshold"] = 0.4 #0.65 # 0.3  #0.5 default 0.4 s 
+        self.rewards.feet_air_time.weight = 1.75 #0.75 1.0 #1.5 #default 0.75
+        self.rewards.feet_air_time.params["threshold"] = 0.5 #0.65 # 0.3  #0.5 default 0.4 s 
         self.rewards.dof_torques_l2.weight = -2.0e-6
         self.rewards.dof_torques_l2.params["asset_cfg"] = SceneEntityCfg(
             "robot", joint_names=[".*_hip_.*", ".*_knee_joint", ".*_ankle_.*"]
         )
-        self.rewards.joint_deviation_hip.weight = -0.5  # default -0.5
+        self.rewards.joint_deviation_hip.weight = -1.5  # default -0.5
         # Commands
         self.commands.base_velocity.ranges.lin_vel_x = (0.0, 1.5) # default (0.0, 1.0)
         self.commands.base_velocity.ranges.lin_vel_y = (-0.5, 0.5) # default (-0.5, 0.5)

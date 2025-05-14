@@ -123,6 +123,7 @@ class RewardManager(ManagerBase):
         for term_cfg in self._class_term_cfgs:
             term_cfg.func.reset(env_ids=env_ids)
         # return logged information
+        extras["Episode_Reward/common_step_counter"] = self._env.common_step_counter
         return extras
 
     def compute(self, dt: float) -> torch.Tensor:
