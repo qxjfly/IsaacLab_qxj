@@ -118,11 +118,11 @@ class CR1ARewards(RewardsCfg):
     #迈步腾空高度奖励 （xx
     feet_air_height = RewTerm(
         func=mdp.feet_air_height_exp,
-        weight= 0.25, #0.1, #0.25, #0.5,
+        weight= 0.125, #0.1, #0.25, #0.5,
         params={
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
             "asset_cfg": SceneEntityCfg("robot", body_names=".*_ankle_roll_link"),
-            "threshold": 0.3,
+            "threshold": 0.3,#0.3
             "std": 0.5,
         },
     ) 
@@ -212,7 +212,7 @@ class CR1ARewards(RewardsCfg):
 
     #步长奖励
     step_distance = RewTerm(
-        func=mdp.feet_step_distance2,
+        func=mdp.feet_step_distance_zq,
         weight=0.1,
         params={
             "command_name": "base_velocity",
@@ -222,6 +222,19 @@ class CR1ARewards(RewardsCfg):
             
         },
     )
+    # step_distance = RewTerm(
+    #     func=mdp.feet_step_distance2,
+    #     weight=0.1,
+    #     params={
+    #         "command_name": "base_velocity",
+    #         "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
+    #         "asset_cfg": SceneEntityCfg("robot", body_names=".*_ankle_roll_link"),
+    #         "threshold": 0.5,# initial threshold = 0.5 步态周期
+            
+    #     },
+    # )
+
+
     # step_distance = RewTerm(
     #     func=mdp.feet_step_distance_optimized,
     #     weight=0.1,
@@ -244,7 +257,7 @@ class CR1ARewards(RewardsCfg):
     # 惩罚迈步knee angle 不跟踪期望
     step_knee = RewTerm(
         func=mdp.feet_step_knee,
-        weight=-0.85, #-0.85,#-0.5, #-0.25, #-0.025,
+        weight= -5.85,#-6.5, #-5.85, #-0.85,#-0.5, #-0.25, #-0.025,
         params={
             "command_name": "base_velocity",
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
@@ -291,7 +304,7 @@ class CR1ARewards(RewardsCfg):
     #迈步接触地面力的奖励
     # feet_contact_force = RewTerm(
     #     func=mdp.feet_contact_force_exp,
-    #     weight= 0.05,
+    #     weight= 0.05, #-0.02
     #     params={
     #         "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
     #         "asset_cfg": SceneEntityCfg("robot", body_names=".*_ankle_roll_link"),
@@ -314,7 +327,7 @@ class CR1ARewards(RewardsCfg):
 
     feet_step_symmetric_hip = RewTerm(
         func=mdp.feet_step_symmetric_hip,
-        weight=-0.05, #-0.025,
+        weight=-0.35,#-0.05 #-0.025,
         params={
             "command_name": "base_velocity",
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
@@ -376,15 +389,27 @@ class CR1ARewards(RewardsCfg):
 
     # 奖励摆动腿在身体前方
     feet_swing_pos = RewTerm(
-        func=mdp.feet_stand_pos2,
-        weight=1.25, # 0.5
+        func=mdp.feet_stand_pos3,#2
+        weight=0.45, #1.25 # 0.5
         params={
             "command_name": "base_velocity",
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
             "asset_cfg": SceneEntityCfg("robot", body_names=".*_ankle_roll_link"),
-            "threshold": 0.2, # 0.35
+            "threshold": 0.3, # 0.35
         },
     )
+
+    # 奖励摆动腿在身体前方
+    # feet_swing_pos2 = RewTerm(
+    #     func=mdp.feet_swing_pos,
+    #     weight=0.1, # 0.5
+    #     params={
+    #         "command_name": "base_velocity",
+    #         "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
+    #         "asset_cfg": SceneEntityCfg("robot", body_names=".*_ankle_roll_link"),
+    #         "threshold": 0.5, # 0.35
+    #     },
+    # )
 
     #踏步力
     # silent_single_leg_landing = RewTerm(
@@ -410,22 +435,31 @@ class CR1ARewards(RewardsCfg):
 
     # reward_stance_knee_extension = RewTerm(
     #     func=mdp.reward_stance_knee_extension,
-    #     weight=0.5,
+    #     weight=0.25,
     #     params={
-    #         "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
-    #         "asset_cfg": SceneEntityCfg("robot", joint_names=".*_knee_joint"),
-    #     },
-    # )
-    # reward_swing_knee_tracking = RewTerm(
-    #     func=mdp.reward_swing_knee_tracking,
-    #     weight=0.5,
-    #     params={
-    #         "command_name": "base_velocity",
     #         "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
     #         "asset_cfg": SceneEntityCfg("robot", joint_names=".*_knee_joint"),
     #     },
     # )
 
+    reward_swing_knee_tracking = RewTerm(
+        func=mdp.reward_swing_knee_tracking,
+        weight=0.35,
+        params={
+            "command_name": "base_velocity",
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
+            "asset_cfg": SceneEntityCfg("robot", joint_names=".*_knee_joint"),
+        },
+    )
+    # thigh_pitch_swing_reward = RewTerm(
+    #     func=mdp.thigh_pitch_swing_reward,
+    #     weight=0.35,
+    #     params={
+    #         "command_name": "base_velocity",
+    #         "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
+    #         "asset_cfg": SceneEntityCfg("robot", joint_names=".*_hip_pitch_joint"),
+    #     },
+    # )
 
 @configclass
 class CR1ARoughEnvCfg(LocomotionVelocityRoughEnvCfg):
@@ -463,7 +497,7 @@ class CR1ARoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # Rewards
         self.rewards.lin_vel_z_l2.weight = 0.0
         self.rewards.undesired_contacts = None
-        self.rewards.flat_orientation_l2.weight = -3.5 # default: -1.0
+        # self.rewards.flat_orientation_l2.weight = -5.5 # -3.5 default: -1.0
         self.rewards.action_rate_l2.weight = -0.005
         self.rewards.dof_acc_l2.weight = -1.25e-7
         self.rewards.dof_acc_l2.params["asset_cfg"] = SceneEntityCfg(

@@ -613,7 +613,7 @@ CR01A_noarm_CFG = ArticulationCfg(
         },
         joint_vel={".*": 0.0},
     ),
-    soft_joint_pos_limit_factor=0.9,
+    soft_joint_pos_limit_factor=0.95,
     actuators={
         "legs": ImplicitActuatorCfg(
             joint_names_expr=[
@@ -654,13 +654,13 @@ CR01A_noarm_CFG = ArticulationCfg(
             },
             velocity_limit=10.0,
             stiffness={
-                ".*_ankle_pitch_joint": 100.0, #30
-                ".*_ankle_roll_joint": 50.0, #20
+                ".*_ankle_pitch_joint": 150.0, #30 #100
+                ".*_ankle_roll_joint": 80.0, #20 #50
             },
             # stiffness = 20,
             damping={
-                ".*_ankle_pitch_joint": 2.0, #1
-                ".*_ankle_roll_joint": 1.0, #0.8
+                ".*_ankle_pitch_joint": 3.0, #1 #2
+                ".*_ankle_roll_joint": 1.0, #0.8 #1
             },
             armature=0.01,
         ),

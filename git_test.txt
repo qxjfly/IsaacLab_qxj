@@ -3,8 +3,7 @@ git commit -m "20250317"
 git pull upstream main 拉取
 git push origin main 推送
 
-
-
+ 
 urdf2usd
 python scripts/tools/convert_urdf.py '/home/ma/Learning/IsaacLab/IsaacLab_qxj/Robots_usd/K188/urdf/K188.urdf' /home/ma/Learning/IsaacLab/IsaacLab_qxj/Robots_usd/usd_sideflip/K188qxj.usd --merge-joints
 

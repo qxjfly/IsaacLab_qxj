@@ -314,7 +314,12 @@ def feet_step_distance2(
         奖励 接触脚在前（可加速度方向逻辑判断.
         
     """
-    
+    temp_s = 1.0
+    if env.common_step_counter > 5000 * 24:
+        temp_x = (env.common_step_counter-5000*24) / (3000 * 24)
+        temp_x_clamped = max(0.0, min(1.0, temp_x))
+        temp_s = 1.0 + 1.0* temp_x_clamped
+
     asset = env.scene[asset_cfg.name]
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
     
@@ -336,10 +341,10 @@ def feet_step_distance2(
     step_temp_local = world_to_local_transform_qxj(body_quat_w, step_temp)
     
 
-    reward = torch.exp(torch.clamp(step_temp_local[:,0], max=0.6)) #- 0.8 #0504修改  加了偏置0.8
+    reward = torch.exp(torch.clamp(step_temp_local[:,0], max=0.8)) #0.6  - 0.8 #0504修改  加了偏置0.8 0515：0.6-》 0.8
 
     # reward = step_temp_local[:,0] #default
-    return reward
+    return reward * temp_s
 def feet_step_distance_optimized(
     env: ManagerBasedRLEnv, 
     command_name: str, 
@@ -496,7 +501,12 @@ def feet_step_knee(
         惩罚 接触地面时 左右腿knee关节 与期望值的差值
         
     """
-    
+    temp_s = 1.0
+    if env.common_step_counter > 6000 * 24:
+        temp_x = (env.common_step_counter-6000*24) / (3000 * 24)
+        temp_x_clamped = max(0.0, min(1.0, temp_x))
+        temp_s = 1.0 + 2.0* temp_x_clamped
+
     asset = env.scene[asset_cfg.name]
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
     # compute the reward
@@ -511,7 +521,7 @@ def feet_step_knee(
     reward = torch.sum(knee_angle_delta,dim=-1)
 
     # reward = step_temp_local[:,0] #default
-    return reward * first_contact_flag
+    return reward * first_contact_flag * temp_s
 
 def feet_step_knee_exp(
     env: ManagerBasedRLEnv, 
@@ -592,7 +602,13 @@ def joint_deviation_anklepitch_l1(env: ManagerBasedRLEnv, asset_cfg: SceneEntity
     angle_ankle = angle_total[:,4:6]
     angle_ankle_ref = -(angle_knee + angle_hip)
     reward = angle_ankle - angle_ankle_ref
-    
+
+    #**0514****************
+    # angle_hip = angle_total[:, :2] - asset.data.default_joint_pos[:, :2]
+    # angle_ankle = angle_total[:,4:6] - asset.data.default_joint_pos[:, 8:10]
+    # reward = angle_ankle + angle_hip
+    #**0514****************
+
     return torch.sum(torch.abs(reward), dim=1)
 
 def feet_contact_force_exp(
@@ -604,32 +620,40 @@ def feet_contact_force_exp(
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
     # compute the reward
     # first_contact = contact_sensor.compute_first_contact(env.step_dt)[:, sensor_cfg.body_ids]
+    rewardx = torch.sum((torch.norm(contact_sensor.data.net_forces_w[:, sensor_cfg.body_ids, :], dim=-1) - std).clip(0, 350), dim=1)#0519
 
     feet_contact_force = contact_sensor.data.net_forces_w[:, sensor_cfg.body_ids, 2]
 
     # reward = torch.exp(-torch.sum(feet_contact_force * first_contact,dim=-1))
     reward = torch.exp(-torch.sum(feet_contact_force,dim=-1)/std)
-    return reward
+    return rewardx
 
 def feet_step_symmetric_hip(
     env: ManagerBasedRLEnv, command_name: str, sensor_cfg: SceneEntityCfg, asset_cfg: SceneEntityCfg, threshold: float
 ) -> torch.Tensor:
     """
-        全部时刻关节角度相对于 default 对称 hip_pitch  knee
+        全部时刻关节角度相对于 default 对称 hip_pitch
         
     """
     
     asset = env.scene[asset_cfg.name]
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
 
-
-    
     hip_pitch_angle_delta = asset.data.joint_pos[:, asset_cfg.joint_ids] - asset.data.default_joint_pos[:, asset_cfg.joint_ids]
     
     reward = torch.sum(hip_pitch_angle_delta,dim=-1)
 
-    # hip_reward = torch.exp(-reward**2 / (2 * sigma**2))
-    # return hip_reward
+    #****0514****************
+    # sorted_values, _ = torch.sort(hip_pitch_angle_delta, dim=1)  # sorted_values形状 [B,2]
+    # #对较大值（第一列）乘以0.8，较大值（第二列）保持不变
+    # weighted_values = torch.cat([
+    #     sorted_values[:, 0:1] * 0.65,          # 较小值保持原样 [B,1]
+    #     sorted_values[:, 1:2]   # 较大值乘0.8 [B,1]
+    # ], dim=1)                          # 合并后形状 [B,2]
+
+    # reward = torch.sum(weighted_values,dim=-1)
+    #****0514****************
+
     return torch.abs(reward)
 
 def feet_step_symmetric_knee(
@@ -748,9 +772,9 @@ def joint_knee_pos_l2(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneE
     """
     asset: Articulation = env.scene[asset_cfg.name]
 
-    knee_pos_flag = asset.data.joint_pos[:, asset_cfg.joint_ids] > 1.35 #1.745
+    knee_pos_flag = asset.data.joint_pos[:, asset_cfg.joint_ids] > 1.0 #1.745
     
-    knee_pos_flag2 = asset.data.joint_pos[:, asset_cfg.joint_ids] < 0.0
+    knee_pos_flag2 = asset.data.joint_pos[:, asset_cfg.joint_ids] < -0.15 #0.0
 
     reward1 = torch.sum(knee_pos_flag, dim=1)
 
@@ -838,7 +862,7 @@ def feet_swing_pos(
     env: ManagerBasedRLEnv, command_name: str, sensor_cfg: SceneEntityCfg, asset_cfg: SceneEntityCfg, threshold: float
 ) -> torch.Tensor:
     """
-        奖励 接触脚在前（可加速度方向逻辑判断.
+        奖励 摆动腿在前（可加速度方向逻辑判断.
         
     """
     
@@ -846,7 +870,7 @@ def feet_swing_pos(
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
 
 
-    swing_feet = contact_sensor.data.net_forces_w_history[:, :, sensor_cfg.body_ids, :].norm(dim=-1).min(dim=1)[0] < 50.0
+    swing_feet = contact_sensor.data.net_forces_w_history[:, :, sensor_cfg.body_ids, :].norm(dim=-1).min(dim=1)[0] < 5.0
 
     swing_feet_pos = torch.sum(asset.data.body_pos_w[:, asset_cfg.body_ids, :] * swing_feet.unsqueeze(-1), dim=1)
 
@@ -856,13 +880,15 @@ def feet_swing_pos(
 
     body_quat_w = asset.data.root_link_quat_w[:, :]
 
-    pos_error_b = world_to_local_transform_qxj(body_quat_w, pos_error_w)
+    pos_error_b = quat_rotate_inverse(body_quat_w, pos_error_w)
 
-    # pos_error = torch.clamp(threshold - pos_error_b[:,0], min=0)  # 未达目标时惩罚
+    pos_error = torch.clamp(threshold - pos_error_b[:,0], min=0)  # 未达目标时惩罚
 
-    # pos_reward = torch.exp(-(pos_error**2) / 0.25)
-    pos_error = torch.clamp(pos_error_b[:,0] - threshold, min=0)  # 未达目标时惩罚
-    pos_reward = torch.tanh(pos_error / 0.25)  # (num_envs, 2)
+    pos_reward = torch.exp(-(pos_error**2) / 0.05)
+
+
+    # pos_error = torch.clamp(pos_error_b[:,0] - threshold, min=0)  # 未达目标时惩罚threshold = 0.15
+    # pos_reward = torch.tanh(pos_error / 0.3)  # (num_envs, 2)
     
     reward = pos_reward
 
@@ -891,6 +917,8 @@ def feet_stand_pos2(
 
     in_stand = stand_feet > 5.0
 
+    stand_flag = torch.all(in_stand, dim=1)
+
     stand_feet_pos =asset.data.body_pos_w[:, asset_cfg.body_ids, :]
 
     base_link_pos = asset.data.root_link_pos_w
@@ -911,7 +939,55 @@ def feet_stand_pos2(
 
     weighted_rewards = pos_reward * stand_mask
     
-    return torch.mean(weighted_rewards, dim=-1)
+    return torch.mean(weighted_rewards, dim=-1) * (~stand_flag).float()
+
+def feet_stand_pos3(
+    env: ManagerBasedRLEnv, command_name: str, sensor_cfg: SceneEntityCfg, asset_cfg: SceneEntityCfg, threshold: float
+) -> torch.Tensor:
+    """
+        奖励 接触脚在前（可加速度方向逻辑判断.
+        
+    """
+    temp = 0.25
+    target_x = 1.0
+    if env.common_step_counter > 4500 * 24:
+        temp_x = (env.common_step_counter-4500*24) / (3000 * 24)
+        temp_x_clamped = max(0.0, min(1.0, temp_x))
+        target_x = 1 + temp_x_clamped
+
+    asset = env.scene[asset_cfg.name]
+    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+
+
+    stand_feet = contact_sensor.data.net_forces_w_history[:, :, sensor_cfg.body_ids].norm(dim=-1).min(dim=1)[0]
+
+    in_stand = stand_feet < 5.0
+
+    stand_flag = torch.all(in_stand, dim=1)
+
+    stand_feet_pos =asset.data.body_pos_w[:, asset_cfg.body_ids, :]
+
+    base_link_pos = asset.data.root_link_pos_w
+
+    pos_error_w = stand_feet_pos - base_link_pos.unsqueeze(1)
+
+    body_quat_w = asset.data.root_link_quat_w
+
+    body_quat_wz = yaw_quat(body_quat_w)
+
+    pos_error_b = quat_rotate_inverse(body_quat_wz.unsqueeze(1), pos_error_w)
+
+    # pos_error = torch.clamp(pos_error_b[:,:,0]-target_x, min=0)  # 未达目标时惩罚
+    # pos_reward = torch.tanh(pos_error / temp)  # (num_envs, 2)
+
+    pos_error = torch.clamp(threshold - pos_error_b[:,:,0], min=0)  # 未达目标时惩罚
+    pos_reward = torch.exp(-(pos_error**2) / 0.05)
+
+    stand_mask = in_stand.float()
+
+    weighted_rewards = pos_reward * stand_mask
+    
+    return torch.mean(weighted_rewards, dim=-1) * (~stand_flag).float() * target_x
 
 def encourage_large_strides(
     env: ManagerBasedRLEnv,
@@ -1105,7 +1181,7 @@ def reward_stance_knee_extension(
     sensor_cfg: SceneEntityCfg,
     asset_cfg: SceneEntityCfg,
     target_angle: float = 0.0,  # 直膝目标角度（弧度）
-    sigma: float = 0.15,        # 角度容忍度（标准差）
+    sigma: float = 0.05,        # 角度容忍度（标准差）
     velocity_penalty_gain: float = 0.2  # 关节速度惩罚系数
 ) -> torch.Tensor:
     """摆动腿触地直膝奖励函数
@@ -1151,8 +1227,8 @@ def reward_swing_knee_tracking(
     command_name: str,
     sensor_cfg: SceneEntityCfg,
     asset_cfg: SceneEntityCfg,
-    traj_amplitude: float = 1.0,    # 膝屈曲幅度（弧度）
-    speed_compensation: float = 0.2, # 速度-幅度耦合系数
+    traj_amplitude: float = 0.8,    # 膝屈曲幅度（弧度）
+    speed_compensation: float = 0.4, # 速度-幅度耦合系数
     temp: float = 0.08               # 跟踪精度系数
 ) -> torch.Tensor:
     """摆动腿膝关节轨迹跟踪奖励函数
@@ -1179,9 +1255,9 @@ def reward_swing_knee_tracking(
     # -------------------------------- 步态相位计算 --------------------------------
     
     current_swingtime = torch.sum(contact_sensor.data.current_air_time[:, sensor_cfg.body_ids] * is_swing, dim=-1)# (B,)
-    current_swingtime_clamp = torch.clamp(current_swingtime, min=0.0, max=0.35)# (B,)
+    current_swingtime_clamp = torch.clamp(current_swingtime, min=0.0, max=0.8)# (B,)
 
-    gait_phase = current_swingtime_clamp / 0.35
+    gait_phase = current_swingtime_clamp / 0.45
     # -------------------------------- 动态轨迹生成 --------------------------------
     # 基座速度影响屈曲幅度
     base_speed = env.command_manager.get_command(command_name)[:, 0]  # (B,)
@@ -1189,10 +1265,10 @@ def reward_swing_knee_tracking(
     
     # 理想膝角度轨迹（相位偏移π使触地时相位为0）
     target_angle = dynamic_amp * torch.sin(gait_phase * torch.pi) # (B,)
-    
+    target_angle_x = torch.clamp(target_angle,min=-0.25)
     # -------------------------------- 奖励计算 --------------------------------
     # 角度跟踪误差奖励
-    angle_error = knee_pos_clamp - target_angle
+    angle_error = knee_pos_clamp - target_angle_x
     pos_reward = torch.exp(-(angle_error**2) / (2 * temp**2))  # (B,)
     
     # 关节运动平滑性惩罚
@@ -1201,3 +1277,97 @@ def reward_swing_knee_tracking(
     # 综合奖励（仅作用于摆动腿）
     # swing_reward = (pos_reward - vel_penalty) * is_swing.float()
     return pos_reward * swing_flag  # 双取平均
+
+def feet_step_distance_zq(
+    env: ManagerBasedRLEnv, command_name: str, sensor_cfg: SceneEntityCfg, asset_cfg: SceneEntityCfg, threshold: float
+) -> torch.Tensor:
+    """
+        奖励 接触脚在前（可加速度方向逻辑判断.
+        
+    """
+    asset = env.scene[asset_cfg.name]
+    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+    
+    foot_pos = asset.data.body_pos_w[:, asset_cfg.body_ids, :2] # xy
+
+    foot_dist = torch.norm(foot_pos[:, 0, :] - foot_pos[:, 1, :], dim=1)
+    fd = 0.5 #0.3
+    max_df = 0.8 #0.8
+    d_min = torch.clamp(foot_dist - fd, -0.5, 0.)
+    d_max = torch.clamp(foot_dist - max_df, 0, 0.5)
+
+    return (torch.exp(-torch.abs(d_min) * 100) + torch.exp(-torch.abs(d_max) * 100)) / 2
+
+def thigh_pitch_swing_reward(
+    env: ManagerBasedRLEnv,
+    command_name: str,
+    sensor_cfg: SceneEntityCfg,
+    asset_cfg: SceneEntityCfg,
+    start_angle: float = 15.0,    # 摆动起始角度（度）
+    end_angle: float = -35.0,     # 摆动目标角度（度）
+    sigma: float = 8.0,          # 高斯函数标准差（度）
+    tracking_gain: float = 1.0,   # 轨迹跟踪奖励系数
+    penalty_gain: float = 0.3     # 区间外惩罚系数
+) -> torch.Tensor:
+    """
+    动态大腿pitch角度摆动奖励函数
+    
+    特性：
+    1. 在摆动相期间跟踪从start_angle到end_angle的期望轨迹
+    2. 实际角度与期望轨迹的匹配度用高斯函数奖励
+    3. 区间外角度施加渐进式惩罚
+    4. 支持摆动相中途中断的案例
+    """
+    # -------------------------------- 数据准备 --------------------------------
+    asset = env.scene[asset_cfg.name]
+    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+
+    contact_forces = contact_sensor.data.net_forces_w[:, sensor_cfg.body_ids, :]
+    is_swing = torch.norm(contact_forces, dim=-1) < 5.0  # 接触力<5N视为摆动  # (B,2)
+    swing_flag = is_swing.any(dim=-1)
+
+    # 获取大腿pitch角度（弧度） (B,)
+    thigh_angles_rad = torch.sum(asset.data.joint_pos[:, asset_cfg.joint_ids]*is_swing,dim=-1)
+    thigh_angles_rad_clamp = torch.clamp(thigh_angles_rad, min=-1.0, max=0.75)# (B,)
+    # -------------------------------- 摆动相检测 --------------------------------
+    # 获取摆动相计时器 (B,)
+    current_swingtime = torch.sum(contact_sensor.data.current_air_time[:, sensor_cfg.body_ids] * is_swing, dim=-1)# (B,)
+    current_swingtime_clamp = torch.clamp(current_swingtime, min=0.0, max=0.5)# (B,)
+    # -------------------------------- 动态期望角度计算 --------------------------------
+    # 转换角度到弧度
+    start_rad = torch.deg2rad(torch.tensor(start_angle, device=env.device))
+    end_rad = torch.deg2rad(torch.tensor(end_angle, device=env.device))
+    sigma_rad = torch.deg2rad(torch.tensor(sigma, device=env.device))
+    
+    # 计算摆动持续时间 (B,)
+    
+    
+    # 生成期望角度轨迹（线性变化） (B,)
+    expected_angle = torch.where(
+        is_swing,
+        start_rad + (end_rad - start_rad) * (current_swingtime_clamp / 0.4),  # 假设0.4s标准摆动相
+        torch.zeros_like(thigh_angles_rad)
+    )
+    
+    # -------------------------------- 奖励计算 --------------------------------
+    # 角度偏差（实际角度 - 期望角度）
+    angle_diff = thigh_angles_rad_clamp - expected_angle
+    
+    # 轨迹跟踪奖励（高斯函数）
+    tracking_reward = tracking_gain * torch.exp(-(angle_diff**2) / (2 * (sigma_rad**2)))
+    
+    # 区间外惩罚（角度超出[start, end]范围时）
+    # angle_range_penalty = penalty_gain * torch.where(
+    #     (thigh_angles_rad > start_rad) | (thigh_angles_rad < end_rad),
+    #     torch.abs(thigh_angles_rad - torch.clamp(thigh_angles_rad, end_rad, start_rad)),
+    #     torch.zeros_like(thigh_angles_rad)
+    # )
+    
+    # 综合奖励（仅在摆动相激活）
+    total_reward = torch.where(
+        swing_flag,
+        tracking_reward,
+        torch.zeros_like(thigh_angles_rad)
+    )
+    
+    return total_reward

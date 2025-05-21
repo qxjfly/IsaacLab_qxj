@@ -95,6 +95,8 @@ def flat_orientation_l2(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = Scen
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     return torch.sum(torch.square(asset.data.projected_gravity_b[:, :2]), dim=1)
+    # orientationx = torch.exp(-torch.norm(asset.data.projected_gravity_b[:, :2], dim=1) * 20)
+    # return orientationx
 
 
 def base_height_l2(
