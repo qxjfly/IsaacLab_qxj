@@ -395,7 +395,7 @@ class CR1ARewards(RewardsCfg):
             "command_name": "base_velocity",
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
             "asset_cfg": SceneEntityCfg("robot", body_names=".*_ankle_roll_link"),
-            "threshold": 0.3, # 0.35
+            "threshold": 0.2, # 0.35
         },
     )
 
