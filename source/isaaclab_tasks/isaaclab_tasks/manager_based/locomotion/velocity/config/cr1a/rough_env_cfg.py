@@ -48,7 +48,7 @@ class CR1ARewards(RewardsCfg):
     # 支撑脚部滑动惩罚
     feet_slide = RewTerm(
         func=mdp.feet_slide,
-        weight=-0.1,
+        weight=-0.1, #-0.1
         params={
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
             "asset_cfg": SceneEntityCfg("robot", body_names=".*_ankle_roll_link"),
@@ -133,7 +133,7 @@ class CR1ARewards(RewardsCfg):
         weight=-1.5, #-0.85, #-0.2,
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names="torso_link"),
-            "threshold": 0.89,#0.86,
+            "threshold": 0.89, #0.89,
         },
     )
     # root_height = RewTerm(
@@ -257,7 +257,7 @@ class CR1ARewards(RewardsCfg):
     # 惩罚迈步knee angle 不跟踪期望
     step_knee = RewTerm(
         func=mdp.feet_step_knee,
-        weight= -5.85,#-6.5, #-5.85, #-0.85,#-0.5, #-0.25, #-0.025,
+        weight=-5.85, #-6.5, #-5.85, #-0.85,#-0.5, #-0.25, #-0.025,
         params={
             "command_name": "base_velocity",
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
@@ -395,7 +395,7 @@ class CR1ARewards(RewardsCfg):
             "command_name": "base_velocity",
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
             "asset_cfg": SceneEntityCfg("robot", body_names=".*_ankle_roll_link"),
-            "threshold": 0.3, # 0.35
+            "threshold": 0.2, # 0.35
         },
     )
 

@@ -96,6 +96,25 @@ from isaaclab_tasks.utils import get_checkpoint_path, load_cfg_from_registry, pa
 # config shortcuts
 algorithm = args_cli.algorithm.lower()
 
+# 定义包装器处理输入输出格式
+class PolicyWrapper(torch.nn.Module):
+    def __init__(self, policy_model):
+        super().__init__()
+        self.policy_model = policy_model
+        
+    def forward(self, states: torch.Tensor) -> torch.Tensor:
+        """
+        Args:
+            states: 形状为[batch_size, 49]的tensor
+        Returns:
+            mean_actions: 形状为[batch_size, 12]的动作均值
+        """
+        # 转换为模型需要的字典格式
+        inputs = {"states": states, "timestep": torch.tensor(0, device=states.device), "timesteps": torch.tensor(0, device=states.device)}
+        # 调用原始模型的compute方法，索引0表示获取mean_actions
+        # return self.policy_model.compute(inputs,"policy")[0]
+        outputs = self.policy_model.act(inputs)
+        return outputs[-1].get("mean_actions", outputs[0])
 
 def main():
     """Play with skrl agent."""
@@ -169,20 +188,45 @@ def main():
     runner.agent.load(resume_path)
     # set agent to evaluation mode
     runner.agent.set_running_mode("eval")
+    ###*********************************************
+    policy_model = runner.agent.models["policy"]
+    print("agent: ",policy_model)
+    # 创建包装器实例
+    wrapped_policy = PolicyWrapper(policy_model).eval()
 
+    # 生成虚拟输入（注意保持与真实输入一致的维度）
+    dummy_input = torch.randn(1, 49).to(runner.agent.device)
+
+    # 跟踪模型（建议在CPU上导出以获得更好兼容性）
+    with torch.no_grad():
+        traced_model = torch.jit.trace(wrapped_policy, dummy_input,check_trace=False)
+        # traced_model = torch.jit.script(wrapped_policy)
+    ####################### traced_model = torch.jit.script(wrapped_policy)
+
+    # 设置保存路径
+    export_dir = os.path.join(os.path.dirname(resume_path), "exported")
+    os.makedirs(export_dir, exist_ok=True)
+    export_path = os.path.join(export_dir, "policy_qxjf.pt")
+
+    # 保存模型
+    traced_model.save(export_path)
+    traced_model.eval()
+    ###*********************************************
     # reset environment
     obs, _ = env.reset()
     timestep = 0
     # simulate environment
     while simulation_app.is_running():
         start_time = time.time()
-
         # run everything in inference mode
         with torch.inference_mode():
             # agent stepping
+            print("obs:",obs[0,:])
             outputs = runner.agent.act(obs, timestep=0, timesteps=0)
             #*******************打印输出***********************
-            # print("robot_vel_x:",obs[0,63:64])
+            out_qxj = traced_model.forward(obs.to(runner.agent.device))
+            print("output_qxj: ",out_qxj[0,:])
+            print("outputs1: ",outputs[-1].get("mean_actions", outputs[0])[0,:])
             #*******************打印输出***********************
             # - multi-agent (deterministic) actions
             if hasattr(env, "possible_agents"):
@@ -191,6 +235,7 @@ def main():
             else:
                 actions = outputs[-1].get("mean_actions", outputs[0])
             # env stepping
+            print("outputs2",actions[0,:])
             obs, _, _, _, _ = env.step(actions)
         if args_cli.video:
             timestep += 1

@@ -42,7 +42,7 @@
   </asset>
   <worldbody>
   <geom name="floor" friction="1 .1 .1" pos="0 0 0" size="500 500 0.125" type="plane" material="MatPlane" condim="3" conaffinity="1" contype="1" group="2" rgba="0.8 0.9 0.8 1"></geom>
-  <body name="torso_link" pos = "0 0 0.88">
+  <body name="torso_link" pos = "0 0 0.9">
     <freejoint name="root"/>
     <inertial pos="-0.00463189 0.00055919 0.22722638" quat="1 0 0 0" mass="23.88983598" diaginertia="0.91123668 0.87143509 0.15347914"/>
     <geom size="0.1 0.15 0.25" pos="0 0 0.325" type="box" rgba="0.752941 0.752941 0.752941 1" class="collision"/>

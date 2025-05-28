@@ -35,7 +35,9 @@ class HumanoidAmpEnv(DirectRLEnv):
         self._motion_loader = MotionLoader(motion_file=self.cfg.motion_file, device=self.device)
 
         # DOF and key body indexes
-        key_body_names = ["right_hand", "left_hand", "right_foot", "left_foot"]
+        # key_body_names = ["right_hand", "left_hand", "right_foot", "left_foot"]
+        key_body_names = ["right_knee_link", "left_knee_link", "right_ankle_roll_link", "left_ankle_roll_link"]
+        # key_body_names = ["right_ankle_roll_link", "left_ankle_roll_link"]
         self.ref_body_index = self.robot.data.body_names.index(self.cfg.reference_body)
         self.key_body_indexes = [self.robot.data.body_names.index(name) for name in key_body_names]
         self.motion_dof_indexes = self._motion_loader.get_dof_index(self.robot.data.joint_names)
@@ -154,10 +156,10 @@ class HumanoidAmpEnv(DirectRLEnv):
         ) = self._motion_loader.sample(num_samples=num_samples, times=times)
 
         # get root transforms (the humanoid torso)base_link  pelvis:run+walk_base  torso:init
-        motion_torso_index = self._motion_loader.get_body_index(["base_link"])[0]
+        motion_torso_index = self._motion_loader.get_body_index(["torso_link"])[0]
         root_state = self.robot.data.default_root_state[env_ids].clone()
         root_state[:, 0:3] = body_positions[:, motion_torso_index] + self.scene.env_origins[env_ids]
-        root_state[:, 2] -= 0.05 #run:-0.15  -0.2 sideflip -0.05 # lift the humanoid slightly to avoid collisions with the ground
+        root_state[:, 2] += 0.02 #run:-0.15  -0.2 sideflip -0.05 # lift the humanoid slightly to avoid collisions with the ground
         root_state[:, 3:7] = body_rotations[:, motion_torso_index]
         root_state[:, 7:10] = body_linear_velocities[:, motion_torso_index]
         root_state[:, 10:13] = body_angular_velocities[:, motion_torso_index]

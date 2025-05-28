@@ -149,6 +149,13 @@ def root_height_l1(env: ManagerBasedRLEnv, threshold: float, asset_cfg: SceneEnt
     delta_z = torch.abs(pos_z - pos_z_ref)
     return delta_z.squeeze() 
 
+def root_height_exp_zq(env: ManagerBasedRLEnv, threshold: float, asset_cfg: SceneEntityCfg) -> torch.Tensor:
+    # weight_zq 0.2
+    asset = env.scene[asset_cfg.name]
+    base_height = asset.data.body_pos_w[:, asset_cfg.body_ids, 2]
+    reward = torch.exp(-torch.abs(base_height - threshold) * 100)
+    return reward
+
 def root_height_exp(env: ManagerBasedRLEnv, threshold: float, asset_cfg: SceneEntityCfg) -> torch.Tensor:
     """Penalize root_link height Z position that deviate from the default position."""
     # 获取基座实际高度
@@ -1291,7 +1298,7 @@ def feet_step_distance_zq(
     foot_pos = asset.data.body_pos_w[:, asset_cfg.body_ids, :2] # xy
 
     foot_dist = torch.norm(foot_pos[:, 0, :] - foot_pos[:, 1, :], dim=1)
-    fd = 0.5 #0.3
+    fd = 0.3 #0.3
     max_df = 0.8 #0.8
     d_min = torch.clamp(foot_dist - fd, -0.5, 0.)
     d_max = torch.clamp(foot_dist - max_df, 0, 0.5)

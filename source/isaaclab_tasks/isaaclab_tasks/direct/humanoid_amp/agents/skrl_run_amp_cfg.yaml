@@ -91,7 +91,7 @@ agent:
   discriminator_batch_size: 4096
   discriminator_reward_scale: 2.0
   discriminator_logit_regularization_scale: 0.05
-  discriminator_gradient_penalty_scale: 5 #10 #5.0
+  discriminator_gradient_penalty_scale: 5.0 #10 #5.0
   discriminator_weight_decay_scale: 1.0e-04
   # rewards_shaper_scale: 1.0
   time_limit_bootstrap: False

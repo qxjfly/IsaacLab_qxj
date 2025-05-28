@@ -140,7 +140,7 @@ class GroundPlaneCfg(SpawnerCfg):
     # usd_path: str = f"{ISAAC_NUCLEUS_DIR}/Environments/Terrains/flat_plane.usd"
     """Path to the USD file to spawn asset from. Defaults to the grid-world ground plane."""
 
-    color: tuple[float, float, float] | None = (0.855, 0.647, 0.1255)
+    color: tuple[float, float, float] | None = (1.0, 0.0784, 0.576) #(0.855, 0.647, 0.1255)
     """The color of the ground plane. Defaults to (0.0, 0.0, 0.0).
 
     If None, then the color remains unchanged.
