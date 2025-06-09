@@ -29,11 +29,11 @@ class HumanoidAmpEnvCfg(DirectRLEnvCfg):
     decimation = 2
 
     # spaces
-    observation_space = 49#77#49  #default:81 = 28jointpos+28jointvel+3pos+4quat+3lin+3ang+keybody*3pos
-    action_space = 12#26#12 #default:28
+    observation_space = 77#49  #default:81 = 28jointpos+28jointvel+3pos+4quat+3lin+3ang+keybody*3pos
+    action_space = 26#12 #default:28
     state_space = 0
     num_amp_observations = 6 #default:2
-    amp_observation_space = 49#77#49 #default:81
+    amp_observation_space = 77#49 #default:81
 
     early_termination = True
     termination_height = 0.3  # sideflip 0.25
@@ -62,8 +62,8 @@ class HumanoidAmpEnvCfg(DirectRLEnvCfg):
     # scene
     scene: InteractiveSceneCfg = InteractiveSceneCfg(num_envs=4096, env_spacing=10.0, replicate_physics=True)
     # CR01a  noarm***************************************************************************
-    robot: ArticulationCfg = CR01A_noarm_CFG.replace(prim_path="/World/envs/env_.*/Robot").replace()
-    # robot: ArticulationCfg = CR01A_amp_CFG.replace(prim_path="/World/envs/env_.*/Robot").replace()
+    # robot: ArticulationCfg = CR01A_noarm_CFG.replace(prim_path="/World/envs/env_.*/Robot").replace()
+    robot: ArticulationCfg = CR01A_amp_CFG.replace(prim_path="/World/envs/env_.*/Robot").replace()
     # robot
     # robot: ArticulationCfg = HUMANOID_28_CFG.replace(prim_path="/World/envs/env_.*/Robot").replace(
     #     actuators={
@@ -146,4 +146,4 @@ class HumanoidAmpRunEnvCfg(HumanoidAmpEnvCfg):
 
 @configclass
 class HumanoidAmpWalkEnvCfg(HumanoidAmpEnvCfg):
-    motion_file = os.path.join(MOTIONS_DIR, "humanoid_walk_cr01a4.npz")
+    motion_file = os.path.join(MOTIONS_DIR, "humanoid_walk_cr01a2.npz")

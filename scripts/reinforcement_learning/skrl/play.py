@@ -189,28 +189,29 @@ def main():
     # set agent to evaluation mode
     runner.agent.set_running_mode("eval")
     ###*********************************************
-    policy_model = runner.agent.models["policy"]
-    print("agent: ",policy_model)
-    # 创建包装器实例
-    wrapped_policy = PolicyWrapper(policy_model).eval()
+    # policy_model = runner.agent.models["policy"]
+    # print("agent: ",policy_model)
+    # # 创建包装器实例
+    # wrapped_policy = PolicyWrapper(policy_model).eval()
 
-    # 生成虚拟输入（注意保持与真实输入一致的维度）
-    dummy_input = torch.randn(1, 49).to(runner.agent.device)
+    # # 生成虚拟输入（注意保持与真实输入一致的维度）
+    # dummy_input = torch.randn(1, 49).to(runner.agent.device)
+    # # 跟踪模型（建议在CPU上导出以获得更好兼容性）
+    # with torch.no_grad():
+    #     traced_model = torch.jit.trace(wrapped_policy, dummy_input,check_trace=False)
+    #     # traced_model = torch.jit.script(wrapped_policy)
+    # print("a",policy_model({"states":dummy_input}))
+    # print("b",wrapped_policy.forward(dummy_input))
+    ##################################################
 
-    # 跟踪模型（建议在CPU上导出以获得更好兼容性）
-    with torch.no_grad():
-        traced_model = torch.jit.trace(wrapped_policy, dummy_input,check_trace=False)
-        # traced_model = torch.jit.script(wrapped_policy)
-    ####################### traced_model = torch.jit.script(wrapped_policy)
+    # # 设置保存路径
+    # export_dir = os.path.join(os.path.dirname(resume_path), "exported")
+    # os.makedirs(export_dir, exist_ok=True)
+    # export_path = os.path.join(export_dir, "policy_qxjf.pt")
 
-    # 设置保存路径
-    export_dir = os.path.join(os.path.dirname(resume_path), "exported")
-    os.makedirs(export_dir, exist_ok=True)
-    export_path = os.path.join(export_dir, "policy_qxjf.pt")
-
-    # 保存模型
-    traced_model.save(export_path)
-    traced_model.eval()
+    # # 保存模型
+    # traced_model.save(export_path)
+    # traced_model.eval()
     ###*********************************************
     # reset environment
     obs, _ = env.reset()
@@ -222,10 +223,10 @@ def main():
         with torch.inference_mode():
             # agent stepping
             print("obs:",obs[0,:])
+            # out_qxj = traced_model.forward(obs.to(runner.agent.device))
             outputs = runner.agent.act(obs, timestep=0, timesteps=0)
             #*******************打印输出***********************
-            out_qxj = traced_model.forward(obs.to(runner.agent.device))
-            print("output_qxj: ",out_qxj[0,:])
+            # print("output_qxj: ",out_qxj[0,:])
             print("outputs1: ",outputs[-1].get("mean_actions", outputs[0])[0,:])
             #*******************打印输出***********************
             # - multi-agent (deterministic) actions

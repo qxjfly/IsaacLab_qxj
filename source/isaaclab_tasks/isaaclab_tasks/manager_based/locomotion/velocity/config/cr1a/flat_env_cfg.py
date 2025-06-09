@@ -25,23 +25,24 @@ class CR1AFlatEnvCfg(CR1ARoughEnvCfg):
         self.curriculum.terrain_levels = None
 
         # Rewards
-        self.rewards.track_lin_vel_xy_exp.weight = 1.5 #qxj
+        self.rewards.track_lin_vel_xy_exp.weight = 2.0 #qxj
         self.rewards.feet_slide.weight = -0.2 #qxj 
         self.rewards.track_ang_vel_z_exp.weight = 1.0
         self.rewards.lin_vel_z_l2.weight = -0.2
-        self.rewards.action_rate_l2.weight = -0.005 #-0.005
+        self.rewards.action_rate_l2.weight = -0.01 #-0.005
         self.rewards.dof_acc_l2.weight = -5.0e-7 # default-1.0e-7
-        self.rewards.feet_air_time.weight = 2.3 #1.75 #0.75 1.0 #1.5 #default 0.75
+        self.rewards.feet_air_time.weight = 3.3 #1.75 #0.75 1.0 #1.5 #default 0.75
         self.rewards.feet_air_time.params["threshold"] = 0.67 #0.65 # 0.3  #0.5 default 0.4 s 
         self.rewards.dof_torques_l2.weight = -2.0e-6
         self.rewards.dof_torques_l2.params["asset_cfg"] = SceneEntityCfg(
             "robot", joint_names=[".*_hip_.*", ".*_knee_joint", ".*_ankle_.*"]
         )
         self.rewards.joint_deviation_hip.weight = -1.5 #-1.5  # default -0.5
+        self.rewards.joint_deviation_arms.weight = -0.5
 
         self.rewards.flat_orientation_l2.weight = -3.8 # -3.5 # -3.5 default: -1.0
         # Commands
-        self.commands.base_velocity.ranges.lin_vel_x = (0.0, 1.5) # default (0.0, 1.0)
+        self.commands.base_velocity.ranges.lin_vel_x = (0.0, 1.0) # default (0.0, 1.0)
         self.commands.base_velocity.ranges.lin_vel_y = (-0.5, 0.5) # default (-0.5, 0.5)
         self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0) # default (-1.0, 1.0)
         
@@ -55,7 +56,7 @@ class CR1AFlatEnvCfg_PLAY(CR1AFlatEnvCfg):
         self.scene.num_envs = 50
         self.scene.env_spacing = 2.5
         #commands
-        self.commands.base_velocity.ranges.lin_vel_x = (0.5, 1.5)
+        self.commands.base_velocity.ranges.lin_vel_x = (0.5, 2.0)
         self.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
         self.commands.base_velocity.ranges.ang_vel_z = (0.0, 0.0)
         # disable randomization for play

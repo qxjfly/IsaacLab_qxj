@@ -30,14 +30,15 @@ class HumanoidAmpEnv(DirectRLEnv):
         dof_upper_limits = self.robot.data.soft_joint_pos_limits[0, :, 1]
         self.action_offset = 0.5 * (dof_upper_limits + dof_lower_limits)
         self.action_scale = dof_upper_limits - dof_lower_limits
-
+        print("Action Offsets:\n", self.action_offset)
+        print("Action Scales:\n", self.action_scale)
         # load motion
         self._motion_loader = MotionLoader(motion_file=self.cfg.motion_file, device=self.device)
 
         # DOF and key body indexes
         # key_body_names = ["right_hand", "left_hand", "right_foot", "left_foot"]
-        key_body_names = ["right_knee_link", "left_knee_link", "right_ankle_roll_link", "left_ankle_roll_link"]
-        # key_body_names = ["right_ankle_roll_link", "left_ankle_roll_link"]
+        # key_body_names = ["right_knee_link", "left_knee_link", "right_ankle_roll_link", "left_ankle_roll_link"]
+        key_body_names = ["right_wrist_roll_link", "left_wrist_roll_link","right_ankle_roll_link", "left_ankle_roll_link"]
         self.ref_body_index = self.robot.data.body_names.index(self.cfg.reference_body)
         self.key_body_indexes = [self.robot.data.body_names.index(name) for name in key_body_names]
         self.motion_dof_indexes = self._motion_loader.get_dof_index(self.robot.data.joint_names)

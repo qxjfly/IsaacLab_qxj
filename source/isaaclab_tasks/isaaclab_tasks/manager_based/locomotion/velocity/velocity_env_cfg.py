@@ -120,8 +120,9 @@ class CommandsCfg:
 class ActionsCfg:
     """Action specifications for the MDP."""
 
-    joint_pos = mdp.JointPositionActionCfg(asset_name="robot", joint_names=[".*"], scale=0.5, use_default_offset=True)
-
+    joint_pos = mdp.JointPositionActionCfg(asset_name="robot", joint_names=[".*_hip_.*",".*_knee_joint",".*_ankle_.*",".*_shoulder_pitch_joint",".*_elbow_pitch_joint"], scale=0.5, use_default_offset=True)
+    # joint_pos = mdp.JointPositionActionCfg(asset_name="robot", joint_names=[".*"], scale=0.5, use_default_offset=True)
+    # print("action_names",joint_pos.joint_names)
 
 @configclass
 class ObservationsCfg:
@@ -187,7 +188,7 @@ class EventCfg:
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names="torso_link"),
-            "mass_distribution_params": (-1.5, 1.5),
+            "mass_distribution_params": (-2.5, 2.5),
             "operation": "add",
         },
     )
@@ -325,7 +326,7 @@ class CurriculumCfg:
     # command vel follows curriculum
     command_vel = CurrTerm(func=mdp.modify_command_velocity,
                            params={"term_name": "track_lin_vel_xy_exp", "max_velocity": [-0.5, 2.0],
-                                   "interval": 1000 * 24, "starting_step": 10000 * 24})
+                                   "interval": 1000 * 24, "starting_step": 4000 * 24})
     
     # modify_reward_weight = CurrTerm(func=mdp.modify_reward_weight,
     #                        params={"term_name": "step_knee2",

@@ -502,15 +502,15 @@ CR01A_CFG = ArticulationCfg(
             ".*_hip_pitch_joint": -0.2,
             ".*_knee_joint": 0.4,
             ".*_ankle_pitch_joint": -0.2,
-            ".*_elbow_pitch_joint": -1.50,
+            ".*_elbow_pitch_joint": -1.50, #-1.0
             "left_shoulder_roll_joint": 0.0,
-            "left_shoulder_pitch_joint": 0.4,
+            "left_shoulder_pitch_joint": 0.4,#0.4
             "right_shoulder_roll_joint": 0.0,
-            "right_shoulder_pitch_joint": 0.4,
+            "right_shoulder_pitch_joint": 0.4,#0.4
         },
         joint_vel={".*": 0.0},
     ),
-    soft_joint_pos_limit_factor=0.95,
+    soft_joint_pos_limit_factor=0.9,
     actuators={
         "legs": ImplicitActuatorCfg(
             joint_names_expr=[
@@ -525,7 +525,7 @@ CR01A_CFG = ArticulationCfg(
                 ".*_hip_pitch_joint": 400.0,
                 ".*_knee_joint": 400.0,
             },
-            velocity_limit=10.0,
+            velocity_limit=20.0,
             stiffness={
                 ".*_hip_yaw_joint": 150.0,
                 ".*_hip_roll_joint": 150.0,
@@ -549,10 +549,10 @@ CR01A_CFG = ArticulationCfg(
                 ".*_ankle_pitch_joint": 120,
                 ".*_ankle_roll_joint": 40,
             },
-            velocity_limit=10.0,
+            velocity_limit=20.0,
             stiffness={
-                ".*_ankle_pitch_joint": 150.0, #30 #100
-                ".*_ankle_roll_joint": 80.0, #20 #50
+                ".*_ankle_pitch_joint": 100.0, #30 #150
+                ".*_ankle_roll_joint": 50.0, #20 #80
             },
             damping={
                 ".*_ankle_pitch_joint": 3.0, #1 #2
@@ -580,7 +580,7 @@ CR01A_CFG = ArticulationCfg(
                 ".*_wrist_roll_joint": 30.0,
             },
             velocity_limit=20.0,
-            stiffness=100.0,
+            stiffness=50.0,
             damping=2.0,
             armature={
                 ".*_shoulder_.*": 0.01,
@@ -591,7 +591,7 @@ CR01A_CFG = ArticulationCfg(
     },
 )
 """Configuration for the NavAlpha Humanoid robot."""
-CR01A_MINIMAL_CFG = CR01A_CFG.copy()
+CR01A_RL_CFG = CR01A_CFG.copy()
 CR01A_amp_CFG = CR01A_CFG.copy()
 
 CR01A_noarm_CFG = ArticulationCfg(

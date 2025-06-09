@@ -13,7 +13,7 @@ from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import Lo
 ##
 # Pre-defined configs
 ##
-from isaaclab_assets import G1_MINIMAL_CFG, Wukong4_MINIMAL_CFG, CR01A_MINIMAL_CFG, CR01A_noarm_MINIMAL_CFG # isort: skip
+from isaaclab_assets import G1_MINIMAL_CFG, Wukong4_MINIMAL_CFG, CR01A_MINIMAL_CFG, CR01A_RL_CFG, CR01A_noarm_MINIMAL_CFG # isort: skip
 from isaaclab_assets import CR01ADC_MINIMAL_CFG, CR01ADC_noarm_MINIMAL_CFG # 
 
 @configclass
@@ -80,10 +80,10 @@ class CR1ARewards(RewardsCfg):
                 "robot",
                 joint_names=[
                     ".*_shoulder_pitch_joint",
-                    ".*_shoulder_roll_joint",
-                    ".*_shoulder_yaw_joint",
+                    # ".*_shoulder_roll_joint",
+                    # ".*_shoulder_yaw_joint",
                     ".*_elbow_pitch_joint",
-                    ".*_wrist_.*",
+                    # ".*_wrist_.*",
                 ],
             )
         },
@@ -257,7 +257,7 @@ class CR1ARewards(RewardsCfg):
     # 惩罚迈步knee angle 不跟踪期望
     step_knee = RewTerm(
         func=mdp.feet_step_knee,
-        weight=-5.85, #-6.5, #-5.85, #-0.85,#-0.5, #-0.25, #-0.025,
+        weight=-1.85, #-6.5, #-5.85, #-0.85,#-0.5, #-0.25, #-0.025,
         params={
             "command_name": "base_velocity",
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
@@ -390,7 +390,7 @@ class CR1ARewards(RewardsCfg):
     # 奖励摆动腿在身体前方
     feet_swing_pos = RewTerm(
         func=mdp.feet_stand_pos3,#2
-        weight=0.45, #1.25 # 0.5
+        weight=0.55, #0.45, #1.25 # 0.5
         params={
             "command_name": "base_velocity",
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
@@ -444,13 +444,14 @@ class CR1ARewards(RewardsCfg):
 
     reward_swing_knee_tracking = RewTerm(
         func=mdp.reward_swing_knee_tracking,
-        weight=0.35,
+        weight=0.45, #0.35,
         params={
             "command_name": "base_velocity",
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
             "asset_cfg": SceneEntityCfg("robot", joint_names=".*_knee_joint"),
         },
     )
+
     # thigh_pitch_swing_reward = RewTerm(
     #     func=mdp.thigh_pitch_swing_reward,
     #     weight=0.35,
@@ -460,6 +461,16 @@ class CR1ARewards(RewardsCfg):
     #         "asset_cfg": SceneEntityCfg("robot", joint_names=".*_hip_pitch_joint"),
     #     },
     # )
+
+    reward_swing_arm_tracking = RewTerm(
+        func=mdp.reward_swing_arm_tracking,
+        weight=0.5, #0.35,
+        params={
+            "command_name": "base_velocity",
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
+            "asset_cfg": SceneEntityCfg("robot", joint_names=".*_shoulder_pitch_joint"),
+        },
+    )
 
 @configclass
 class CR1ARoughEnvCfg(LocomotionVelocityRoughEnvCfg):
@@ -472,6 +483,7 @@ class CR1ARoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # self.scene.robot = G1_MINIMAL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
         # self.scene.height_scanner.prim_path = "{ENV_REGEX_NS}/Robot/torso_link" #高度观测器的 base_link
         # self.scene.robot = Wukong4_MINIMAL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+        # self.scene.robot = CR01A_RL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
         self.scene.robot = CR01A_MINIMAL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
         # self.scene.robot = CR01A_noarm_MINIMAL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
         # self.scene.robot = CR01ADC_noarm_MINIMAL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
@@ -498,7 +510,7 @@ class CR1ARoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.rewards.lin_vel_z_l2.weight = 0.0
         self.rewards.undesired_contacts = None
         # self.rewards.flat_orientation_l2.weight = -5.5 # -3.5 default: -1.0
-        self.rewards.action_rate_l2.weight = -0.005
+        # self.rewards.action_rate_l2.weight = -0.005
         self.rewards.dof_acc_l2.weight = -1.25e-7
         self.rewards.dof_acc_l2.params["asset_cfg"] = SceneEntityCfg(
             "robot", joint_names=[".*_hip_.*", ".*_knee_joint"]

@@ -30,9 +30,9 @@ left_shoulder_yaw 9
 right_hip_yaw 10
 right_shoulder_yaw 11
 left_knee 12
-left_elbow_pitch 13
+left_elbow_pitch 13 //5
 right_knee 14
-right_elbow_pitch 15
+right_elbow_pitch 15 //7
 left_ankle_pitch 16
 left_wrist_yaw 17
 right_ankle_pitch 18
@@ -43,3 +43,5 @@ right_ankle_roll 22
 right_wrist_pitch 23
 left_wrist_roll 24
 right_wrist_roll 25
+
+
