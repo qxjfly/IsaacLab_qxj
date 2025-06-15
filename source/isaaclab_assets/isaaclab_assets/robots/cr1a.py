@@ -591,3 +591,141 @@ CR01ADC_noarm_CFG = ArticulationCfg(
 )
 """Configuration for the NavAlpha Humanoid robot."""
 CR01ADC_noarm_MINIMAL_CFG = CR01ADC_noarm_CFG.copy()
+
+
+
+################################
+CR01B_CFG = ArticulationCfg(
+    spawn=sim_utils.UsdFileCfg(
+        usd_path="/home/ma/Learning/IsaacLab/IsaacLab_qxj/Robots_usd/CRB0_usd/CRB0.usd",
+        activate_contact_sensors=True,
+        rigid_props=sim_utils.RigidBodyPropertiesCfg(
+            disable_gravity=False,
+            retain_accelerations=False,
+            linear_damping=0.0,
+            angular_damping=0.0,
+            max_linear_velocity=1000.0,
+            max_angular_velocity=1000.0,
+            max_depenetration_velocity=1.0,
+        ),
+        articulation_props=sim_utils.ArticulationRootPropertiesCfg(
+            enabled_self_collisions=False, solver_position_iteration_count=8, solver_velocity_iteration_count=4
+        ),#enabled_self_collisions=False  #default is False
+    ),
+    init_state=ArticulationCfg.InitialStateCfg(
+        pos=(0.0, 0.0, 0.88),
+        joint_pos={
+            ".*_hip_pitch_joint": -0.2,
+            ".*_knee_joint": 0.4,
+            ".*_ankle_pitch_joint": -0.2,
+            ".*_elbow_pitch_joint": 0.0,
+            "left_shoulder_roll_joint": 0.0,
+            "left_shoulder_pitch_joint": 0.4,
+            "right_shoulder_roll_joint": 0.0,
+            "right_shoulder_pitch_joint": 0.4,
+        },
+        joint_vel={".*": 0.0},
+    ),
+    soft_joint_pos_limit_factor=0.9,
+    actuators={
+        "legs": ImplicitActuatorCfg(
+            joint_names_expr=[
+                ".*_hip_yaw_joint",
+                ".*_hip_roll_joint",
+                ".*_hip_pitch_joint",
+                ".*_knee_joint",
+            ],
+            effort_limit={
+                ".*_hip_yaw_joint": 120.0,
+                ".*_hip_roll_joint": 80.0,
+                ".*_hip_pitch_joint": 400.0,
+                ".*_knee_joint": 400.0,
+            },
+            velocity_limit=20.0,
+            stiffness={
+                ".*_hip_yaw_joint": 150.0,
+                ".*_hip_roll_joint": 150.0,
+                ".*_hip_pitch_joint": 200.0,
+                ".*_knee_joint": 200.0,
+            },
+            damping={
+                ".*_hip_yaw_joint": 3.0,
+                ".*_hip_roll_joint": 3.0,
+                ".*_hip_pitch_joint": 4.0,
+                ".*_knee_joint": 4.0,
+            },
+            armature={
+                ".*_hip_.*": 0.01,
+                ".*_knee_joint": 0.01,
+            },
+        ),
+        "feet": ImplicitActuatorCfg(
+            joint_names_expr=[".*_ankle_pitch_joint", ".*_ankle_roll_joint"],
+            effort_limit={
+                ".*_ankle_pitch_joint": 120,
+                ".*_ankle_roll_joint": 40,
+            },
+            velocity_limit=20.0,
+            stiffness={
+                ".*_ankle_pitch_joint": 100.0, #30 #150
+                ".*_ankle_roll_joint": 50.0, #20 #80
+            },
+            damping={
+                ".*_ankle_pitch_joint": 2.0, #1 #2
+                ".*_ankle_roll_joint": 1.0, #0.8 #1
+            },
+            armature=0.01,
+        ),
+        "arms": ImplicitActuatorCfg(
+            joint_names_expr=[
+                ".*_shoulder_pitch_joint",
+                ".*_shoulder_roll_joint",
+                ".*_shoulder_yaw_joint",
+                ".*_elbow_pitch_joint",
+                ".*_wrist_pitch_joint",
+                ".*_wrist_yaw_joint",
+                ".*_wrist_roll_joint",
+            ],
+            effort_limit={
+                ".*_shoulder_pitch_joint": 80.0,
+                ".*_shoulder_roll_joint": 80.0,
+                ".*_shoulder_yaw_joint": 80.0,
+                ".*_elbow_pitch_joint": 80.0,
+                ".*_wrist_pitch_joint": 30.0,
+                ".*_wrist_yaw_joint": 30.0,
+                ".*_wrist_roll_joint": 30.0,
+            },
+            velocity_limit=20.0,
+            stiffness=50.0,
+            damping=2.0,
+            armature={
+                ".*_shoulder_.*": 0.01,
+                ".*_elbow_.*": 0.01,
+                ".*_wrist_.*": 0.01,
+            },
+        ),
+        "waist": ImplicitActuatorCfg(
+            joint_names_expr=["waist_.*"],
+            effort_limit={
+                "waist_yaw_joint": 120,
+                "waist_roll_joint": 120,
+                "waist_pitch_joint": 400,
+            },
+            velocity_limit=20.0,
+            stiffness={
+                "waist_yaw_joint": 150,
+                "waist_roll_joint": 150,
+                "waist_pitch_joint": 200,
+            },
+            damping={
+                "waist_yaw_joint": 3,
+                "waist_roll_joint": 3,
+                "waist_pitch_joint": 4,
+            },
+            armature=0.01,
+        ),
+    },
+)
+"""Configuration for the NavAlpha Humanoid robot."""
+CR01B_RL_CFG = CR01B_CFG.copy()
+CR01B_amp_CFG = CR01B_CFG.copy()

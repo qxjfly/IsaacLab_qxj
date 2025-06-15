@@ -48,6 +48,8 @@ def base_ang_vel(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCf
     """Root angular velocity in the asset's root frame."""
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
+    # print("base_ang_vel",asset.data.root_ang_vel_b)
+    # print("base_ang_vel size",asset.data.root_ang_vel_b.size())
     return asset.data.root_ang_vel_b
 
 

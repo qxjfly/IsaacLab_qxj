@@ -10,15 +10,15 @@ from isaaclab.utils import configclass
 import isaaclab_tasks.manager_based.locomotion.velocity.mdp as mdp
 from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import LocomotionVelocityRoughEnvCfg, RewardsCfg
 
-from isaaclab_tasks.manager_based.locomotion.velocity.config.cr1a.mirror_cfg import MirrorCfg
+from isaaclab_tasks.manager_based.locomotion.velocity.config.cr1b.mirror_cfg import MirrorCfg
 ##
 # Pre-defined configs
 ##
 from isaaclab_assets import G1_MINIMAL_CFG, Wukong4_MINIMAL_CFG, CR01A_MINIMAL_CFG, CR01A_RL_CFG, CR01A_noarm_MINIMAL_CFG # isort: skip
-from isaaclab_assets import CR01ADC_MINIMAL_CFG, CR01ADC_noarm_MINIMAL_CFG # 
+from isaaclab_assets import CR01ADC_MINIMAL_CFG, CR01ADC_noarm_MINIMAL_CFG, CR01B_RL_CFG # 
 
 @configclass
-class CR1ARewards(RewardsCfg):
+class CR1BRewards(RewardsCfg):
     """Reward terms for the MDP."""
     # 终止惩罚
     termination_penalty = RewTerm(func=mdp.is_terminated, weight=-200.0) 
@@ -91,11 +91,11 @@ class CR1ARewards(RewardsCfg):
     )
 
     #惩罚腰部关节偏离默认值
-    # joint_deviation_torso = RewTerm(
-    #     func=mdp.joint_deviation_l1,
-    #     weight=-0.1,
-    #     params={"asset_cfg": SceneEntityCfg("robot", joint_names="torso_joint")},
-    # )
+    joint_deviation_torso = RewTerm(
+        func=mdp.joint_deviation_l1,
+        weight=-0.1,
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names="waist_.*")},
+    )
     ##########################################################################
     #迈步腾空高度奖励
     feet_air_height = RewTerm(
@@ -114,7 +114,7 @@ class CR1ARewards(RewardsCfg):
         func=mdp.root_height_l1,
         weight=-1.5, 
         params={
-            "asset_cfg": SceneEntityCfg("robot", body_names="torso_link"),
+            "asset_cfg": SceneEntityCfg("robot", body_names="base_link"),
             "threshold": 0.89, 
         },
     )
@@ -225,7 +225,7 @@ class CR1ARewards(RewardsCfg):
     #     params={
     #         "command_name": "base_velocity",
     #         "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
-    #         "force_thresh": 800, # A620 B800
+    #         "force_thresh": 300, # 
     #         "speed_adapt_ratio": 0.1,# 
     #     },
     # )
@@ -277,38 +277,41 @@ class CR1ARewards(RewardsCfg):
     # )
     
 @configclass
-class CR1AMirrorCfg(MirrorCfg):
+class CR1BMirrorCfg(MirrorCfg):
     
     def __init__(self):
         # Joint IDs
         lhipPitch = 0
-        lshoulderPitch = 1
-        rhipPitch = 2
-        rshoulderPitch = 3
-        lhipRoll = 4
-        lshoulderRoll = 5
-        rhipRoll = 6
-        rshoulderRoll = 7
-        lhipYaw = 8
-        lshoulderYaw = 9
-        rhipYaw = 10
-        rshoulderYaw = 11
-        lknee = 12
-        lelbowPitch = 13
-        rknee = 14
-        relbowPitch = 15
-        lankle1 = 16
-        lwristYaw = 17
-        rankle1 = 18
-        rwristYaw = 19
-        lankle2 = 20
-        lwristPitch = 21
-        rankle2 = 22
-        rwristPitch = 23
-        lwristRoll = 24
-        rwristRoll = 25
+        rhipPitch = 1
+        waistYaw = 2
+        lhipRoll = 3
+        rhipRoll = 4
+        waistRoll = 5
+        lhipYaw = 6
+        rhipYaw = 7
+        waistPitch = 8
+        lknee = 9
+        rknee = 10
+        lshoulderPitch = 11
+        rshoulderPitch = 12
+        lankle1 = 13
+        rankle1 = 14
+        lshoulderRoll = 15
+        rshoulderRoll = 16
+        lankle2 = 17
+        rankle2 = 18
+        lshoulderYaw = 19
+        rshoulderYaw = 20
+        lelbowPitch = 21
+        relbowPitch = 22
+        lwristYaw = 23
+        rwristYaw = 24
+        lwristPitch = 25
+        rwristPitch = 26
+        lwristRoll = 27
+        rwristRoll = 28
 
-        JOINT_NUM = 26
+        JOINT_NUM = 29
 
         lhipPitch_a = 0
         lshoulderPitch_a = 1
@@ -327,19 +330,23 @@ class CR1AMirrorCfg(MirrorCfg):
         lankle2_a = 14
         rankle2_a = 15
 
-        # lhipYaw   = 0
-        # rhipYaw   = 1
-        # lhipRoll  = 2
-        # rhipRoll  = 3
-        # lhipPitch = 4
-        # rhipPitch = 5
-        # lknee     = 6
-        # rknee     = 7
-        # lankle1   = 8
-        # rankle1   = 9
-        # lankle2   = 10
-        # rankle2   = 11
-        # JOINT_NUM = 12
+        # 关节默认排序 对应的aciton id
+        # lhipPitch_a = 0
+        # rhipPitch_a = 1
+        # lhipRoll_a = 2
+        # rhipRoll_a = 3
+        # lhipYaw_a = 4
+        # rhipYaw_a = 5
+        # lknee_a = 6
+        # rknee_a = 7
+        # lshoulderPitch_a = 8
+        # rshoulderPitch_a = 9
+        # lankle1_a = 10
+        # rankle1_a = 11
+        # lankle2_a = 12
+        # rankle2_a = 13
+        # lelbowPitch_a = 14
+        # relbowPitch_a = 15
 
         left_joint_ids  = [
             lhipPitch,
@@ -422,9 +429,9 @@ class CR1AMirrorCfg(MirrorCfg):
         self.policy_obvs_opposite_id.extend([ACTIONS   + joint_id for joint_id in self.action_opposite_id_a])
 
 @configclass
-class CR1ARoughEnvCfg(LocomotionVelocityRoughEnvCfg):
-    rewards: CR1ARewards = CR1ARewards()
-    mirror_cfg: CR1AMirrorCfg = CR1AMirrorCfg()
+class CR1BRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
+    rewards: CR1BRewards = CR1BRewards()
+    mirror_cfg: CR1BMirrorCfg = CR1BMirrorCfg()
 
     def __post_init__(self):
         # post init of parent
@@ -433,17 +440,17 @@ class CR1ARoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # self.scene.robot = G1_MINIMAL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
         # self.scene.height_scanner.prim_path = "{ENV_REGEX_NS}/Robot/torso_link" #高度观测器的 base_link
         # self.scene.robot = Wukong4_MINIMAL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
-        self.scene.robot = CR01A_RL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+        self.scene.robot = CR01B_RL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
         # self.scene.robot = CR01A_MINIMAL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
         # self.scene.robot = CR01A_noarm_MINIMAL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
         # self.scene.robot = CR01ADC_noarm_MINIMAL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
-        self.scene.height_scanner.prim_path = "{ENV_REGEX_NS}/Robot/torso_link" #高度观测器的 base_link
+        self.scene.height_scanner.prim_path = "{ENV_REGEX_NS}/Robot/base_link" #高度观测器的 base_link
 
         # Randomization
         self.events.push_robot = None
         self.events.add_base_mass = None
         self.events.reset_robot_joints.params["position_range"] = (1.0, 1.0)
-        self.events.base_external_force_torque.params["asset_cfg"].body_names = ["torso_link"]
+        self.events.base_external_force_torque.params["asset_cfg"].body_names = ["base_link"]
         self.events.reset_base.params = {
             "pose_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5), "yaw": (-3.14, 3.14)},
             "velocity_range": {
@@ -475,12 +482,12 @@ class CR1ARoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0)
 
         # terminations
-        self.terminations.base_contact.params["sensor_cfg"].body_names = "torso_link"
+        self.terminations.base_contact.params["sensor_cfg"].body_names = "body_link"
         self.terminations.arm_contact.params["sensor_cfg"].body_names = ".*_shoulder_.*"
         self.terminations.elbow_contact.params["sensor_cfg"].body_names = ".*_elbow_.*"
 
 @configclass
-class CR1ARoughEnvCfg_PLAY(CR1ARoughEnvCfg):
+class CR1BRoughEnvCfg_PLAY(CR1BRoughEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()

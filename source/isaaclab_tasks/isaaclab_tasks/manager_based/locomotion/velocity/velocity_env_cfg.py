@@ -22,6 +22,8 @@ from isaaclab.terrains import TerrainImporterCfg
 from isaaclab.utils import configclass
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR, ISAACLAB_NUCLEUS_DIR
 from isaaclab.utils.noise import AdditiveUniformNoiseCfg as Unoise
+from isaaclab.utils.modifiers import DigitalFilterCfg
+import isaaclab.utils.modifiers as modifiers
 
 import isaaclab_tasks.manager_based.locomotion.velocity.mdp as mdp
 
@@ -34,7 +36,6 @@ from isaaclab.terrains.config.rough import ROUGH_TERRAINS_CFG  # isort: skip
 ##
 # Scene definition
 ##
-
 
 @configclass
 class MySceneCfg(InteractiveSceneCfg):
@@ -73,15 +74,16 @@ class MySceneCfg(InteractiveSceneCfg):
     )
     #imu
     # imu_RF = ImuCfg(prim_path="{ENV_REGEX_NS}/Robot/LF_FOOT", debug_vis=True)
-    imu = ImuCfg(
-        prim_path="{ENV_REGEX_NS}/Robot/torso_link",
-        offset=ImuCfg.OffsetCfg(
-        pos=(0.0, 0.0, 0.0),        # 相对于父框架的坐标 (x, y, z)
-        rot=(1.0, 0.0, 0.0, 0.0)    # 四元数 (w, x, y, z) 表示无旋转
-        ),
-        debug_vis=False,
-        gravity_bias=(0.0, 0.0, 9.81),
-    )
+    # imu = ImuCfg(
+    #     prim_path="{ENV_REGEX_NS}/Robot/base_link",
+    #     offset=ImuCfg.OffsetCfg(
+    #     pos=(0.0, 0.0, 0.0),        # 相对于父框架的坐标 (x, y, z)
+    #     rot=(1.0, 0.0, 0.0, 0.0)    # 四元数 (w, x, y, z) 表示无旋转
+    #     ),
+    #     debug_vis=False,
+    #     gravity_bias=(0.0, 0.0, 9.81),
+    # )
+    
     contact_forces = ContactSensorCfg(prim_path="{ENV_REGEX_NS}/Robot/.*", history_length=3, track_air_time=True)
     # lights
     sky_light = AssetBaseCfg(
@@ -120,9 +122,28 @@ class CommandsCfg:
 class ActionsCfg:
     """Action specifications for the MDP."""
 
-    joint_pos = mdp.JointPositionActionCfg(asset_name="robot", joint_names=[".*_hip_.*",".*_knee_joint",".*_ankle_.*",".*_shoulder_pitch_joint",".*_elbow_pitch_joint"], scale=0.5, use_default_offset=True)
+    # joint_pos = mdp.JointPositionActionCfg(asset_name="robot", joint_names=[".*_hip_.*",".*_knee_joint",".*_ankle_.*",".*_shoulder_pitch_joint",".*_elbow_pitch_joint"], scale=0.5, use_default_offset=True)
     # joint_pos = mdp.JointPositionActionCfg(asset_name="robot", joint_names=[".*"], scale=0.5, use_default_offset=True)
-    # print("action_names",joint_pos.joint_names)
+    joint_pos = mdp.JointPositionActionCfg(asset_name="robot", 
+                                           preserve_order = True,
+                                           joint_names=["left_hip_pitch_joint",
+                                                        "left_shoulder_pitch_joint",
+                                                        "right_hip_pitch_joint",
+                                                        "right_shoulder_pitch_joint",
+                                                        "left_hip_roll_joint",
+                                                        "right_hip_roll_joint",
+                                                        "left_hip_yaw_joint",
+                                                        "right_hip_yaw_joint",
+                                                        "left_knee_joint",
+                                                        "left_elbow_pitch_joint",
+                                                        "right_knee_joint",
+                                                        "right_elbow_pitch_joint",
+                                                        "left_ankle_pitch_joint",
+                                                        "right_ankle_pitch_joint",
+                                                        "left_ankle_roll_joint",
+                                                        "right_ankle_roll_joint"], 
+                                           scale=0.5, 
+                                           use_default_offset=True)
 
 @configclass
 class ObservationsCfg:
@@ -135,15 +156,38 @@ class ObservationsCfg:
         # observation terms (order preserved)
         # base_lin_vel = ObsTerm(func=mdp.base_lin_vel, noise=Unoise(n_min=-0.1, n_max=0.1))#3
         # base_lin_acc = ObsTerm(func=mdp.imu_lin_acc, noise=Unoise(n_min=-0.1, n_max=0.1))#3
+
         base_ang_vel = ObsTerm(func=mdp.base_ang_vel, noise=Unoise(n_min=-0.2, n_max=0.2))#3
+        # base_ang_vel = ObsTerm(
+        #     func=mdp.base_ang_vel, 
+        #     noise=Unoise(n_min=-0.2, n_max=0.2),
+        #     modifiers=[DigitalFilterCfg(
+        #                         A=[0.0],               # 不需要输出反馈（递归部分）
+        #                         B=[0.0, 0.0, 1.0]   # 延迟2个周期的系数
+        #                     )],
+        # )#3
+        
         projected_gravity = ObsTerm(
             func=mdp.projected_gravity,
             noise=Unoise(n_min=-0.05, n_max=0.05),
         )#3
+
         velocity_commands = ObsTerm(func=mdp.generated_commands, params={"command_name": "base_velocity"})#3
+
         joint_pos = ObsTerm(func=mdp.joint_pos_rel, noise=Unoise(n_min=-0.01, n_max=0.01)) #26
+        # joint_pos = ObsTerm(
+        #     func=mdp.joint_pos_rel, 
+        #     noise=Unoise(n_min=-0.01, n_max=0.01),
+        #     modifiers=[DigitalFilterCfg(
+        #                         A=[0.0],               # 不需要输出反馈（递归部分）
+        #                         B=[0.0, 0.0, 1.0]   # 延迟2个周期的系数
+        #                     )],
+        # ) #26
+
         joint_vel = ObsTerm(func=mdp.joint_vel_rel, noise=Unoise(n_min=-1.5, n_max=1.5)) #26
+
         actions = ObsTerm(func=mdp.last_action) #26  // 3 + 3 + 3 + 3 + 26 + 26 + 26=90
+
         height_scan = ObsTerm(
             func=mdp.height_scan,
             params={"sensor_cfg": SceneEntityCfg("height_scanner")},
@@ -175,7 +219,6 @@ class EventCfg:
             "num_buckets": 64,
         },
     )
-
     # scale_all_link_masses = EventTerm(
     #     func=mdp.randomize_rigid_body_mass,
     #     mode="startup",
@@ -187,11 +230,21 @@ class EventCfg:
         func=mdp.randomize_rigid_body_mass,
         mode="startup",
         params={
-            "asset_cfg": SceneEntityCfg("robot", body_names="torso_link"),
+            "asset_cfg": SceneEntityCfg("robot", body_names="body_link"),
             "mass_distribution_params": (-2.5, 2.5),
             "operation": "add",
         },
     )
+
+    # base_com = EventTerm(
+    #     func=mdp.randomize_rigid_body_com,
+    #     mode="startup",
+    #     params={
+    #         "asset_cfg": SceneEntityCfg("robot", body_names="body_link"),
+    #         "com_range": {"x": (-0.05, 0.05), "y": (-0.05, 0.05), "z": (-0.01, 0.01)},
+    #     },
+    # )
+
     # scale_all_joint_armature = EventTerm(
     #     func=mdp.randomize_joint_parameters,
     #     mode="startup",
@@ -248,6 +301,17 @@ class EventCfg:
             "velocity_range": (0.0, 0.0),
         },
     )
+    joint_pd_randomization = EventTerm(
+        func=mdp.randomize_actuator_gains,
+        mode="reset",  # 在每次环境重置时触发
+        params={
+            "asset_cfg": SceneEntityCfg("robot"),
+            "stiffness_distribution_params": (0.9, 1.1),  # 刚度随机范围 (N·m/rad)
+            "damping_distribution_params": (0.9, 1.1),  # 阻尼临界阻尼系数比例
+            "operation":"scale",
+            "distribution":"log_uniform",
+        }
+    )
 
     # interval
     push_robot = EventTerm(
@@ -271,7 +335,7 @@ class RewardsCfg:
     )#角速度z的跟踪奖励
     # -- penalties
     lin_vel_z_l2 = RewTerm(func=mdp.lin_vel_z_l2, weight=-2.0) # 线速度z的惩罚
-    ang_vel_xy_l2 = RewTerm(func=mdp.ang_vel_xy_l2, weight=-0.05) # 没有改动  # 角速度xy的惩罚
+    ang_vel_xy_l2 = RewTerm(func=mdp.ang_vel_xy_l2, weight=-0.05) # 角速度xy的惩罚
     dof_torques_l2 = RewTerm(func=mdp.joint_torques_l2, weight=-1.0e-5) # 特定关节力矩的惩罚
     dof_acc_l2 = RewTerm(func=mdp.joint_acc_l2, weight=-2.5e-7) # 特定关节加速度的惩罚
     action_rate_l2 = RewTerm(func=mdp.action_rate_l2, weight=-0.01) # 动作改变率的惩罚
@@ -325,8 +389,8 @@ class CurriculumCfg:
     #                                      "starting_step": 1500 * 24})
     # command vel follows curriculum
     command_vel = CurrTerm(func=mdp.modify_command_velocity,
-                           params={"term_name": "track_lin_vel_xy_exp", "max_velocity": [-0.5, 2.0],
-                                   "interval": 1000 * 24, "starting_step": 4000 * 24})
+                           params={"term_name": "track_lin_vel_xy_exp", "max_velocity": [-0.5, 1.5],
+                                   "interval": 1000 * 24, "starting_step": 5000 * 24})
     
     # modify_reward_weight = CurrTerm(func=mdp.modify_reward_weight,
     #                        params={"term_name": "step_knee2",

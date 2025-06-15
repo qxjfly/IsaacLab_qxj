@@ -6,11 +6,11 @@
 from isaaclab.managers import SceneEntityCfg
 from isaaclab.utils import configclass
 
-from .rough_env_cfg import CR1ARoughEnvCfg
+from .rough_env_cfg import CR1BRoughEnvCfg
 
 
 @configclass
-class CR1AFlatEnvCfg(CR1ARoughEnvCfg):
+class CR1BFlatEnvCfg(CR1BRoughEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()
@@ -27,7 +27,7 @@ class CR1AFlatEnvCfg(CR1ARoughEnvCfg):
         # Rewards
         # robot_base
         self.rewards.track_lin_vel_xy_exp.weight = 1.5 #qxj
-        self.rewards.track_ang_vel_z_exp.weight = 1.0 
+        self.rewards.track_ang_vel_z_exp.weight = 1.0
         self.rewards.lin_vel_z_l2.weight = -0.2
         self.rewards.ang_vel_xy_l2.weight = -0.5 #default -0.05
         self.rewards.flat_orientation_l2.weight = -4.5 #
@@ -37,6 +37,7 @@ class CR1AFlatEnvCfg(CR1ARoughEnvCfg):
         # Joint deviation
         self.rewards.joint_deviation_hip.weight = -0.5 # default -0.5  hip:yaw roll && ankle: roll
         self.rewards.joint_deviation_arms.weight = -0.5
+        self.rewards.joint_deviation_torso.weight = -0.5 # waist yaw roll pitch
 
         # Joint coordination  存在奖励项
         self.rewards.reward_joint_coordination_hip.weight = -0.5
@@ -77,7 +78,7 @@ class CR1AFlatEnvCfg(CR1ARoughEnvCfg):
         self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0) # default (-1.0, 1.0)
         
 
-class CR1AFlatEnvCfg_PLAY(CR1AFlatEnvCfg):
+class CR1BFlatEnvCfg_PLAY(CR1BFlatEnvCfg):
     def __post_init__(self) -> None:
         # post init of parent
         super().__post_init__()

@@ -8,11 +8,11 @@ from isaaclab.utils import configclass
 from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlPpoActorCriticCfg, RslRlPpoAlgorithmCfg, RslRlSymmetryCfg
 
 @configclass
-class CR1ARoughPPORunnerCfg(RslRlOnPolicyRunnerCfg):
+class CR1BRoughPPORunnerCfg(RslRlOnPolicyRunnerCfg):
     num_steps_per_env = 24
     max_iterations = 3000
     save_interval = 50
-    experiment_name = "cr1a_rough"
+    experiment_name = "cr1b_rough"
     empirical_normalization = False
     policy = RslRlPpoActorCriticCfg(
         init_noise_std=1.0,
@@ -37,12 +37,12 @@ class CR1ARoughPPORunnerCfg(RslRlOnPolicyRunnerCfg):
 
 
 @configclass
-class CR1AFlatPPORunnerCfg(CR1ARoughPPORunnerCfg):
+class CR1BFlatPPORunnerCfg(CR1BRoughPPORunnerCfg):
     def __post_init__(self):
         super().__post_init__()
 
         self.max_iterations = 50000
-        self.experiment_name = "cr1a_flat"
+        self.experiment_name = "cr1b_flat"
         self.policy.actor_hidden_dims = [256, 128, 128]
         self.policy.critic_hidden_dims = [256, 128, 128]
 

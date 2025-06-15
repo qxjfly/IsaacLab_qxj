@@ -178,11 +178,48 @@ def modify_command_velocity(
     if (env.common_step_counter > starting_step) and (env.common_step_counter % interval < 13):
         term_cfg = env.reward_manager.get_term_cfg(term_name)
         rew = env.reward_manager._episode_sums[term_name][env_ids]
-        if torch.mean(rew) / env.max_episode_length > 0.7 * term_cfg.weight * env.step_dt:
+        if torch.mean(rew) / env.max_episode_length > 0.76 * term_cfg.weight * env.step_dt:
             curr_lin_vel_x = (
                 # np.clip(curr_lin_vel_x[0] - 0.5, max_velocity[0], 0.), 
                 np.clip(curr_lin_vel_x[0], max_velocity[0], 0.), 
                 np.clip(curr_lin_vel_x[1] + 0.2, 0., max_velocity[1])
+            )
+            command_cfg.ranges.lin_vel_x = curr_lin_vel_x
+
+    return curr_lin_vel_x[1]
+
+def modify_command_velocity_ref(
+    env: RLTaskEnv, 
+    env_ids: Sequence[int], 
+    term_name: str, 
+    max_velocity: Sequence[float], 
+    interval: int, 
+    starting_step: float = 0.0
+    ):
+    """Curriculum that modifies the maximum command velocity over some intervals. 
+
+    Args:
+        env: The learning environment.
+        env_ids: Not used since all environments are affected.
+        term_name: The name of the reward term.
+        max_velocity: The maximum velocity. 
+        interval: The number of steps after which the condition is checked again
+        starting_step: The number of steps after which the curriculum is applied.
+    """
+
+    command_cfg = env.command_manager.get_term('base_velocity').cfg
+    curr_lin_vel_x = command_cfg.ranges.lin_vel_x
+
+    if env.common_step_counter < starting_step:
+        return curr_lin_vel_x[1]
+    
+    if env.common_step_counter % interval == 0:
+        term_cfg = env.reward_manager.get_term_cfg(term_name)
+        rew = env.reward_manager._episode_sums[term_name][env_ids]
+        if torch.mean(rew) / env.max_episode_length > 0.8 * term_cfg.weight * env.step_dt:
+            curr_lin_vel_x = (
+                np.clip(curr_lin_vel_x[0] - 0.5, max_velocity[0], 0.), 
+                np.clip(curr_lin_vel_x[1] + 0.5, 0., max_velocity[1])
             )
             command_cfg.ranges.lin_vel_x = curr_lin_vel_x
 

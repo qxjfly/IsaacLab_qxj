@@ -94,10 +94,8 @@ def flat_orientation_l2(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = Scen
     """
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
-    # return torch.sum(torch.square(asset.data.projected_gravity_b[:, :2]), dim=1)
-    return torch.square(asset.data.projected_gravity_b[:, 0]) + torch.square(asset.data.projected_gravity_b[:, 1])*5
-    # orientationx = torch.exp(-torch.norm(asset.data.projected_gravity_b[:, :2], dim=1) * 20)
-    # return orientationx
+
+    return torch.sum(torch.square(asset.data.projected_gravity_b[:, :2]), dim=1)
 
 
 def base_height_l2(
@@ -197,7 +195,7 @@ def joint_pos_limits(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEn
     out_of_limits += (
         asset.data.joint_pos[:, asset_cfg.joint_ids] - asset.data.soft_joint_pos_limits[:, asset_cfg.joint_ids, 1]
     ).clip(min=0.0)
-    # print("joint_id_ankle",asset_cfg.joint_ids)
+    
     return torch.sum(out_of_limits, dim=1)
 
 

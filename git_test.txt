@@ -17,6 +17,9 @@ conda activate q_isaaclab
 2/./isaaclab.sh -p scripts/reinforcement_learning/skrl/play.py --task Isaac-Humanoid-AMP-Run-Direct-v0 --num_envs 16 --algorithm AMP --checkpoint /home/ma/Learning/IsaacLab/IsaacLab_qxj/logs/skrl/humanoid_amp_run/2025-03-24_18-49-46_amp_torch/checkpoints/best_agent.pt --real-time
 
 
+Resume
+./isaaclab.sh -p scripts/reinforcement_learning/rsl_rl/train.py --task Isaac-Velocity-Flat-CR1A-v0 --resume 2025-06-14_15-08-55 --checkpoint model_1600.pt
+
 left_hip_pitch 0
 left_shoulder_pitch 1
 right_hip_pitch 2
@@ -44,4 +47,55 @@ right_wrist_pitch 23
 left_wrist_roll 24
 right_wrist_roll 25
 
+
+CRB1
+left_hip_pitch_joint 0 
+right_hip_pitch_joint 1
+waist_yaw_joint 2
+
+left_hip_roll_joint 3
+right_hip_roll_joint 4
+waist_roll_joint 5
+
+left_hip_yaw_joint 6
+right_hip_yaw_joint 7
+waist_pitch_joint 8
+
+left_knee_joint 9
+right_knee_joint 10
+left_shoulder_pitch_joint 11
+right_shoulder_pitch_joint 12
+
+left_ankle_pitch_joint 13
+right_ankle_pitch_joint 14
+left_shoulder_roll_joint 15
+right_shoulder_roll_joint 16
+
+left_ankle_roll_joint 17
+right_ankle_roll_joint 18
+left_shoulder_yaw_joint 19
+right_shoulder_yaw_joint 20
+
+left_elbow_pitch_joint 21
+right_elbow_pitch_joint 22
+
+left_wrist_yaw_joint 23
+right_wrist_yaw_joint 24
+
+left_wrist_pitch_joint 25
+right_wrist_pitch_joint 26
+
+left_wrist_roll_joint 27
+right_wrist_roll_joint 28
+
+['left_hip_pitch_joint', 'right_hip_pitch_joint', 'waist_yaw_joint', 
+'left_hip_roll_joint', 'right_hip_roll_joint', 'waist_roll_joint', 
+'left_hip_yaw_joint', 'right_hip_yaw_joint', 'waist_pitch_joint', 
+'left_knee_joint', 'right_knee_joint', 'left_shoulder_pitch_joint', 'right_shoulder_pitch_joint', 
+'left_ankle_pitch_joint', 'right_ankle_pitch_joint', 'left_shoulder_roll_joint', 'right_shoulder_roll_joint', 
+'left_ankle_roll_joint', 'right_ankle_roll_joint', 'left_shoulder_yaw_joint', 'right_shoulder_yaw_joint', 
+'left_elbow_pitch_joint', 'right_elbow_pitch_joint', 
+'left_wrist_yaw_joint', 'right_wrist_yaw_joint', 
+'left_wrist_pitch_joint', 'right_wrist_pitch_joint', 
+'left_wrist_roll_joint', 'right_wrist_roll_joint']
 

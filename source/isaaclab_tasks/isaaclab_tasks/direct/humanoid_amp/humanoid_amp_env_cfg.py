@@ -38,7 +38,7 @@ class HumanoidAmpEnvCfg(DirectRLEnvCfg):
     early_termination = True
     termination_height = 0.3  # sideflip 0.25
 
-    motion_file: str = MISSING
+    motion_file: str = MISSING #
     reference_body = "torso_link" #"pelvis" #"torso"  usd中的base_link的name
     reference_bodym = "torso_link" #"base_link" K188usd  motion_file中base_link的name
     reset_strategy = "random"  # default, random, random-start
@@ -146,4 +146,4 @@ class HumanoidAmpRunEnvCfg(HumanoidAmpEnvCfg):
 
 @configclass
 class HumanoidAmpWalkEnvCfg(HumanoidAmpEnvCfg):
-    motion_file = os.path.join(MOTIONS_DIR, "humanoid_walk_cr01a2.npz")
+    motion_file = os.path.join(MOTIONS_DIR, "humanoid_walk_cr01a6.npz")
