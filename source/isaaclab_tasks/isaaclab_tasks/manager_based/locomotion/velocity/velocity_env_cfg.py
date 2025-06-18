@@ -317,7 +317,7 @@ class EventCfg:
     push_robot = EventTerm(
         func=mdp.push_by_setting_velocity,
         mode="interval",
-        interval_range_s=(10.0, 15.0),
+        interval_range_s=(8.0, 12.0),
         params={"velocity_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5)}},
     )
 
@@ -390,7 +390,7 @@ class CurriculumCfg:
     # command vel follows curriculum
     command_vel = CurrTerm(func=mdp.modify_command_velocity,
                            params={"term_name": "track_lin_vel_xy_exp", "max_velocity": [-0.5, 1.5],
-                                   "interval": 1000 * 24, "starting_step": 5000 * 24})
+                                   "interval": 1000 * 24, "starting_step": 1000 * 24})
     
     # modify_reward_weight = CurrTerm(func=mdp.modify_reward_weight,
     #                        params={"term_name": "step_knee2",

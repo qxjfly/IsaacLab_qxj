@@ -80,11 +80,11 @@ class CR1BRewards(RewardsCfg):
             "asset_cfg": SceneEntityCfg(
                 "robot",
                 joint_names=[
-                    ".*_shoulder_pitch_joint",
-                    # ".*_shoulder_roll_joint",
-                    # ".*_shoulder_yaw_joint",
+                    # ".*_shoulder_pitch_joint",
+                    ".*_shoulder_roll_joint",
+                    ".*_shoulder_yaw_joint",
                     ".*_elbow_pitch_joint",
-                    # ".*_wrist_.*",
+                    ".*_wrist_.*",
                 ],
             )
         },
@@ -126,7 +126,7 @@ class CR1BRewards(RewardsCfg):
         params={
             "command_name": "base_velocity",
             "asset_cfg": SceneEntityCfg("robot", body_names=".*_ankle_roll_link"),
-            "threshold": 0.051,
+            "threshold": 0.07, #0.051
         },
     )
 
@@ -178,6 +178,12 @@ class CR1BRewards(RewardsCfg):
         weight=-3.0e-5,#  -4.0e-5
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_roll_joint"])},
     )
+    #惩罚ankle_pitch关节力矩法
+    # joint_ankle_pitch_torque_l2 = RewTerm(
+    #     func=mdp.joint_torques_hip_roll_l2,
+    #     weight=-8.0e-6,#  -4.0e-5
+    #     params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_ankle_pitch_joint"])},
+    # )
 
     #惩罚ankle_pitch 不平行身体
     joint_parallel_ankle_pitch = RewTerm(
@@ -240,15 +246,15 @@ class CR1BRewards(RewardsCfg):
     # )
 
     #############################################################################
-    reward_swing_arm_tracking = RewTerm(
-        func=mdp.reward_swing_arm_tracking,
-        weight=0.5, #0.35,
-        params={
-            "command_name": "base_velocity",
-            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
-            "asset_cfg": SceneEntityCfg("robot", joint_names=".*_shoulder_pitch_joint"),
-        },
-    )
+    # reward_swing_arm_tracking = RewTerm(
+    #     func=mdp.reward_swing_arm_tracking,
+    #     weight=0.5, #0.35,
+    #     params={
+    #         "command_name": "base_velocity",
+    #         "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
+    #         "asset_cfg": SceneEntityCfg("robot", joint_names=".*_shoulder_pitch_joint"),
+    #     },
+    # )
 
     reward_joint_coordination_hip = RewTerm(
         func=mdp.joint_coordination,
@@ -259,7 +265,24 @@ class CR1BRewards(RewardsCfg):
             "ratio": -1.0,
         },
     )
-
+    joint_coordination_larm_leg = RewTerm(
+        func=mdp.joint_coordination,
+        weight=-0.5,
+        params={
+            "joint1_cfg": SceneEntityCfg("robot", joint_names=["left_shoulder_pitch_joint"]), 
+            "joint2_cfg": SceneEntityCfg("robot", joint_names=["right_hip_pitch_joint"]),
+            "ratio": 1.0, 
+        },
+    )
+    joint_coordination_rarm_leg = RewTerm(
+        func=mdp.joint_coordination,
+        weight=-0.5,
+        params={
+            "joint1_cfg": SceneEntityCfg("robot", joint_names=["right_shoulder_pitch_joint"]), 
+            "joint2_cfg": SceneEntityCfg("robot", joint_names=["left_hip_pitch_joint"]),
+            "ratio": 1.0, 
+        },
+    )
     # reward_no_double_feet_air = RewTerm(
     #     func=mdp.biped_no_double_feet_air,
     #     weight=-1.0,
@@ -275,6 +298,11 @@ class CR1BRewards(RewardsCfg):
     #         "min_dist": 0.30, 
     #         "max_dist": 0.40},
     # )
+    body_ang_vel_xy_l2 = RewTerm(
+        func=mdp.body_ang_vel_xy_l2,
+        weight=-0.05,
+        params={"asset_cfg": SceneEntityCfg("robot", body_names=["body_link"])},
+    )
     
 @configclass
 class CR1BMirrorCfg(MirrorCfg):

@@ -26,31 +26,34 @@ class CR1BFlatEnvCfg(CR1BRoughEnvCfg):
 
         # Rewards
         # robot_base
-        self.rewards.track_lin_vel_xy_exp.weight = 1.5 #qxj
+        self.rewards.track_lin_vel_xy_exp.weight = 1.75 #qxj
         self.rewards.track_ang_vel_z_exp.weight = 1.0
         self.rewards.lin_vel_z_l2.weight = -0.2
         self.rewards.ang_vel_xy_l2.weight = -0.5 #default -0.05
         self.rewards.flat_orientation_l2.weight = -4.5 #
         self.rewards.root_height.weight = -1.5
-        self.rewards.root_height.params["threshold"] = 0.89
+        self.rewards.root_height.params["threshold"] = 0.85
+        self.rewards.body_ang_vel_xy_l2.weight = -0.5
 
         # Joint deviation
         self.rewards.joint_deviation_hip.weight = -0.5 # default -0.5  hip:yaw roll && ankle: roll
         self.rewards.joint_deviation_arms.weight = -0.5
-        self.rewards.joint_deviation_torso.weight = -0.5 # waist yaw roll pitch
+        self.rewards.joint_deviation_torso.weight = -1.0 # waist yaw roll pitch
 
         # Joint coordination  存在奖励项
         self.rewards.reward_joint_coordination_hip.weight = -0.5
 
         # Joint limits
         self.rewards.dof_pos_limits.weight = -1.0
-        self.rewards.joint_hip_roll_torque_l2.weight = -3.0e-5
+        self.rewards.joint_hip_roll_torque_l2.weight = -5.0e-5 #-3.0e-5
+        # self.rewards.joint_ankle_pitch_torque_l2.weight = -8.0e-6
 
         # Gait related rewards
         self.rewards.feet_slide.weight = -0.25 #qxj 
-        self.rewards.feet_air_time.weight = 1.5 #default 0.75
-        self.rewards.feet_air_time.params["threshold"] = 0.45 #default 0.4 s 
+        self.rewards.feet_air_time.weight = 1.75 #1.5 #default 0.75
+        self.rewards.feet_air_time.params["threshold"] = 0.45 #default 0.4s 
         self.rewards.feet_air_height.weight = 0.125
+        # self.rewards.feet_air_height.params["threshold"] = 0.25 
         self.rewards.step_distance.weight = 0.1
         self.rewards.step_knee.weight = -2.5
         self.rewards.joint_parallel_ankle_pitch.weight = -0.08
@@ -67,7 +70,11 @@ class CR1BFlatEnvCfg(CR1BRoughEnvCfg):
         )
 
         # Arm swing rewards
-        self.rewards.reward_swing_arm_tracking.weight = 0.5
+        # self.rewards.reward_swing_arm_tracking.weight = 0.5 #0.5
+        self.rewards.joint_coordination_larm_leg.weight = -0.5 #0.5
+        self.rewards.joint_coordination_larm_leg.params["ratio"]=1.0
+        self.rewards.joint_coordination_rarm_leg.weight = -0.5 #0.5
+        self.rewards.joint_coordination_rarm_leg.params["ratio"]=1.0
         
         # lowvel
         self.rewards.joint_deviation_zero_lowvel.weight = -0.5

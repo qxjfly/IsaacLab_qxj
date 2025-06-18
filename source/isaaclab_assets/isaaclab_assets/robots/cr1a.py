@@ -613,16 +613,16 @@ CR01B_CFG = ArticulationCfg(
         ),#enabled_self_collisions=False  #default is False
     ),
     init_state=ArticulationCfg.InitialStateCfg(
-        pos=(0.0, 0.0, 0.88),
+        pos=(0.0, 0.0, 0.9),
         joint_pos={
             ".*_hip_pitch_joint": -0.2,
             ".*_knee_joint": 0.4,
             ".*_ankle_pitch_joint": -0.2,
             ".*_elbow_pitch_joint": 0.0,
             "left_shoulder_roll_joint": 0.0,
-            "left_shoulder_pitch_joint": 0.4,
+            "left_shoulder_pitch_joint": 0.0,
             "right_shoulder_roll_joint": 0.0,
-            "right_shoulder_pitch_joint": 0.4,
+            "right_shoulder_pitch_joint": 0.0,
         },
         joint_vel={".*": 0.0},
     ),
@@ -635,13 +635,13 @@ CR01B_CFG = ArticulationCfg(
                 ".*_hip_pitch_joint",
                 ".*_knee_joint",
             ],
-            effort_limit={
+            effort_limit_sim={
                 ".*_hip_yaw_joint": 120.0,
                 ".*_hip_roll_joint": 80.0,
                 ".*_hip_pitch_joint": 400.0,
                 ".*_knee_joint": 400.0,
             },
-            velocity_limit=20.0,
+            velocity_limit_sim=20.0,
             stiffness={
                 ".*_hip_yaw_joint": 150.0,
                 ".*_hip_roll_joint": 150.0,
@@ -661,11 +661,11 @@ CR01B_CFG = ArticulationCfg(
         ),
         "feet": ImplicitActuatorCfg(
             joint_names_expr=[".*_ankle_pitch_joint", ".*_ankle_roll_joint"],
-            effort_limit={
+            effort_limit_sim={
                 ".*_ankle_pitch_joint": 120,
                 ".*_ankle_roll_joint": 40,
             },
-            velocity_limit=20.0,
+            velocity_limit_sim=20.0,
             stiffness={
                 ".*_ankle_pitch_joint": 100.0, #30 #150
                 ".*_ankle_roll_joint": 50.0, #20 #80
@@ -686,18 +686,34 @@ CR01B_CFG = ArticulationCfg(
                 ".*_wrist_yaw_joint",
                 ".*_wrist_roll_joint",
             ],
-            effort_limit={
-                ".*_shoulder_pitch_joint": 80.0,
-                ".*_shoulder_roll_joint": 80.0,
-                ".*_shoulder_yaw_joint": 80.0,
-                ".*_elbow_pitch_joint": 80.0,
+            effort_limit_sim={
+                ".*_shoulder_pitch_joint": 120.0,
+                ".*_shoulder_roll_joint": 120.0,
+                ".*_shoulder_yaw_joint": 120.0,
+                ".*_elbow_pitch_joint": 120.0,
                 ".*_wrist_pitch_joint": 30.0,
                 ".*_wrist_yaw_joint": 30.0,
                 ".*_wrist_roll_joint": 30.0,
             },
-            velocity_limit=20.0,
-            stiffness=50.0,
-            damping=2.0,
+            velocity_limit_sim=20.0,
+            stiffness={
+                ".*_shoulder_pitch_joint": 150.0,
+                ".*_shoulder_roll_joint": 150.0,
+                ".*_shoulder_yaw_joint": 150.0,
+                ".*_elbow_pitch_joint": 150.0,
+                ".*_wrist_pitch_joint": 50.0,
+                ".*_wrist_yaw_joint": 50.0,
+                ".*_wrist_roll_joint": 50.0,
+            },
+            damping={
+                ".*_shoulder_pitch_joint": 3.0,
+                ".*_shoulder_roll_joint": 3.0,
+                ".*_shoulder_yaw_joint": 3.0,
+                ".*_elbow_pitch_joint": 3.0,
+                ".*_wrist_pitch_joint": 1.0,
+                ".*_wrist_yaw_joint": 1.0,
+                ".*_wrist_roll_joint": 1.0,
+            },
             armature={
                 ".*_shoulder_.*": 0.01,
                 ".*_elbow_.*": 0.01,
@@ -706,12 +722,12 @@ CR01B_CFG = ArticulationCfg(
         ),
         "waist": ImplicitActuatorCfg(
             joint_names_expr=["waist_.*"],
-            effort_limit={
+            effort_limit_sim={
                 "waist_yaw_joint": 120,
                 "waist_roll_joint": 120,
                 "waist_pitch_joint": 400,
             },
-            velocity_limit=20.0,
+            velocity_limit_sim=20.0,
             stiffness={
                 "waist_yaw_joint": 150,
                 "waist_roll_joint": 150,

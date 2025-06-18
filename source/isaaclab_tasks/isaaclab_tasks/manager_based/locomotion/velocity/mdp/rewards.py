@@ -628,10 +628,10 @@ def reward_swing_arm_tracking(
     dynamic_amp = traj_amplitude * (1 + speed_compensation * base_speed) # (B,)
     
     # 理想摆动腿侧的肩关节轨迹
-    target_angle = dynamic_amp * torch.sin(gait_phase * torch.pi - torch.pi/2) # (B,)
+    target_angle = dynamic_amp * torch.sin(gait_phase * torch.pi - torch.pi/2) # (B,)[-1,1]
     target_angle_x = torch.clamp(target_angle,max=1.0)
     # 理想支撑腿侧的肩关节轨迹
-    target_angle2 = dynamic_amp * torch.sin(gait_phase2 * torch.pi + torch.pi/2) # (B,)
+    target_angle2 = dynamic_amp * torch.sin(gait_phase2 * torch.pi + torch.pi/2) # (B,)[1,-1]
     target_angle2_x = torch.clamp(target_angle2,max=1.0)
     # -------------------------------- 奖励计算 --------------------------------
     # 角度跟踪误差奖励
