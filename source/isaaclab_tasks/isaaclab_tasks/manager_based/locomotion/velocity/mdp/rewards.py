@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 from typing import Tuple
 from isaaclab.managers import SceneEntityCfg
 from isaaclab.sensors import ContactSensor
-from isaaclab.utils.math import quat_rotate_inverse, yaw_quat
+from isaaclab.utils.math import quat_rotate_inverse, yaw_quat, quat_apply_inverse
 
 if TYPE_CHECKING:
     from isaaclab.envs import ManagerBasedRLEnv
@@ -457,6 +457,25 @@ def feet_stand_pos3(
     
     return torch.mean(weighted_rewards, dim=-1) * (~stand_flag).float() * target_x
 
+def feet_contact_vel(
+        env, sensor_cfg: SceneEntityCfg, 
+        asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
+    """Penalize feet sliding.
+
+    This function penalizes the agent for sliding its feet on the ground. The reward is computed as the
+    norm of the linear velocity of the feet multiplied by a binary contact sensor. This ensures that the
+    agent is penalized only when the feet are in contact with the ground.
+    """
+    # Penalize feet contact velocity.
+    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+    # contacts = contact_sensor.data.net_forces_w_history[:, :, sensor_cfg.body_ids, :].norm(dim=-1).max(dim=1)[0] > 1.0
+    first_contact = contact_sensor.compute_first_contact(env.step_dt)[:, sensor_cfg.body_ids]
+    asset = env.scene[asset_cfg.name]
+
+    body_vel = asset.data.body_lin_vel_w[:, asset_cfg.body_ids, :3] #xyz
+    reward = torch.sum(body_vel.norm(dim=-1) * first_contact, dim=1)
+    return reward
+
 def feet_contact_forces(
     env: ManagerBasedRLEnv,
     sensor_cfg: SceneEntityCfg, # weight: -0.02
@@ -477,7 +496,7 @@ def silent_single_leg_landing(
     command_name: str,
     sensor_cfg: SceneEntityCfg,
     force_thresh: float = 800.0,      # 最大允许冲击力(N)
-    speed_adapt_ratio: float = 0.1   # 速度适应系数
+    speed_adapt_ratio: float = 0.15   # 速度适应系数
 ) -> torch.Tensor:
     """单脚触地冲击力优化奖励函数"""
     # -------------------------------- 数据准备 --------------------------------
@@ -493,7 +512,7 @@ def silent_single_leg_landing(
     base_lin_vel = torch.norm(env.command_manager.get_command(command_name)[:, :2], dim=1) # 水平速度 vx vy
     # -------------------------------- 单脚触地检测 --------------------------------
     # 检测有效接触腿（力>5N视为触地）
-    contact_mask = force_norms > 10.0  # (B, K)
+    contact_mask = force_norms > 200.0  # (B, K) 可以保留一部分双脚支撑期
     single_contact = torch.sum(contact_mask.float(), dim=1) == 1  # (B,) 单脚触地标志
     
     # 提取触地腿的垂直力 (B,)
@@ -520,7 +539,7 @@ def silent_single_leg_landing(
     
     # -------------------------------- 综合奖励 --------------------------------
     # 基础奖励曲线
-    base_reward = torch.exp(-force_penalty)
+    base_reward = torch.exp(-force_penalty) - 0.15
     
     # 应用单脚触地掩码
     return torch.where(single_contact, base_reward, 0.0)  # 非单脚触地时不惩罚
@@ -750,14 +769,14 @@ def lateral_distance(
     """
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
-    root_pos = asset.data.root_pos_w
-    root_quat = asset.data.root_quat_w
-    asset_pos_world = asset.data.body_pos_w[:, asset_cfg.body_ids, :]
+    root_pos = asset.data.root_pos_w # [:,3]
+    root_quat = asset.data.root_quat_w #[:,4]
+    asset_pos_world = asset.data.body_pos_w[:, asset_cfg.body_ids, :] #[:,2,3]
     # asset_pos_body = quat_rotate_inverse(yaw_quat(root_quat.unsqueeze(1)), asset_pos_world - root_pos.unsqueeze(1))
-    yaw_quat_only = yaw_quat(root_quat)
-    yaw_quat_expanded = yaw_quat_only.unsqueeze(1).expand(-1, asset_pos_world.shape[1], -1)
-    asset_pos_body = quat_apply_inverse(yaw_quat_expanded, asset_pos_world - root_pos.unsqueeze(1))
-    asset_dist = torch.abs(asset_pos_body[:, 0, 1] - asset_pos_body[:, 1, 1]).unsqueeze(1)
+    yaw_quat_only = yaw_quat(root_quat)#[:,4]
+    yaw_quat_expanded = yaw_quat_only.unsqueeze(1).expand(-1, asset_pos_world.shape[1], -1) #[:,2,4]
+    asset_pos_body = quat_apply_inverse(yaw_quat_expanded, asset_pos_world - root_pos.unsqueeze(1)) #[:,2,3]
+    asset_dist = torch.abs(asset_pos_body[:, 0, 1] - asset_pos_body[:, 1, 1]).unsqueeze(1) #[:,1]
 
     dist = torch.where(
         asset_dist < min_dist, 

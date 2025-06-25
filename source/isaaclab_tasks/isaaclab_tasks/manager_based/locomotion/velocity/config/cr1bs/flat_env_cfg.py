@@ -6,11 +6,11 @@
 from isaaclab.managers import SceneEntityCfg
 from isaaclab.utils import configclass
 
-from .rough_env_cfg import CR1BRoughEnvCfg
+from .rough_env_cfg import CR1BSRoughEnvCfg
 
 
 @configclass
-class CR1BFlatEnvCfg(CR1BRoughEnvCfg):
+class CR1BSFlatEnvCfg(CR1BSRoughEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()
@@ -32,13 +32,13 @@ class CR1BFlatEnvCfg(CR1BRoughEnvCfg):
         self.rewards.ang_vel_xy_l2.weight = -0.5 #default -0.05
         self.rewards.flat_orientation_l2.weight = -4.5 #
         self.rewards.root_height.weight = -1.5
-        self.rewards.root_height.params["threshold"] = 0.85
+        self.rewards.root_height.params["threshold"] = 0.865 #default 0.85
         self.rewards.body_ang_vel_xy_l2.weight = -0.5
 
         # Joint deviation
         self.rewards.joint_deviation_leg_yaw.weight = -0.5 # default -0.5  hip:yaw roll && ankle: roll
         self.rewards.joint_deviation_leg_roll.weight = -0.5 # default -0.5
-        self.rewards.joint_deviation_arms.weight = -0.5
+        self.rewards.joint_deviation_arms.weight = -1.0 # default -0.5
         self.rewards.joint_deviation_torso.weight = -1.0 # waist yaw roll pitch
 
         # Joint coordination  存在奖励项
@@ -51,14 +51,14 @@ class CR1BFlatEnvCfg(CR1BRoughEnvCfg):
 
         # Gait related rewards
         self.rewards.feet_slide.weight = -0.25 #qxj
-        self.rewards.feet_air_time.weight = 2.15 #1.75 #default 1.75
+        self.rewards.feet_air_time.weight = 1.75 #1.75 #default 1.75
         self.rewards.feet_air_time.params["threshold"] = 0.45 #default 0.4s 
         self.rewards.feet_air_height.weight = 0.125
         # self.rewards.feet_air_height.params["threshold"] = 0.25 #default 0.12
         self.rewards.step_distance.weight = 0.1
         self.rewards.step_knee.weight = -4.5  #default -2.5
         self.rewards.joint_parallel_ankle_pitch.weight = -0.08
-        self.rewards.feet_step_current_airtime.params["threshold"] = 0.65 #default 0.55
+        self.rewards.feet_step_current_airtime.params["threshold"] = 0.6 #default 0.55
         self.rewards.feet_swing_pos.weight = 0.15 #
         # self.rewards.reward_no_double_feet_air.weight = -1.0
         self.rewards.distance_feet.weight = -0.5 #
@@ -91,7 +91,7 @@ class CR1BFlatEnvCfg(CR1BRoughEnvCfg):
         self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0) # default (-1.0, 1.0)
         
 
-class CR1BFlatEnvCfg_PLAY(CR1BFlatEnvCfg):
+class CR1BSFlatEnvCfg_PLAY(CR1BSFlatEnvCfg):
     def __post_init__(self) -> None:
         # post init of parent
         super().__post_init__()

@@ -10,7 +10,7 @@ from isaaclab.utils import configclass
 import isaaclab_tasks.manager_based.locomotion.velocity.mdp as mdp
 from isaaclab_tasks.manager_based.locomotion.velocity.velocity_env_cfg import LocomotionVelocityRoughEnvCfg, RewardsCfg
 
-from isaaclab_tasks.manager_based.locomotion.velocity.config.cr1b.mirror_cfg import MirrorCfg
+from isaaclab_tasks.manager_based.locomotion.velocity.config.cr1bs.mirror_cfg import MirrorCfg
 ##
 # Pre-defined configs
 ##
@@ -18,7 +18,7 @@ from isaaclab_assets import G1_MINIMAL_CFG, Wukong4_MINIMAL_CFG, CR01A_MINIMAL_C
 from isaaclab_assets import CR01ADC_MINIMAL_CFG, CR01ADC_noarm_MINIMAL_CFG, CR01B_RL_CFG # 
 
 @configclass
-class CR1BRewards(RewardsCfg):
+class CR1BSRewards(RewardsCfg):
     """Reward terms for the MDP."""
     # 终止惩罚
     termination_penalty = RewTerm(func=mdp.is_terminated, weight=-200.0) 
@@ -90,7 +90,7 @@ class CR1BRewards(RewardsCfg):
                     ".*_shoulder_roll_joint",
                     ".*_shoulder_yaw_joint",
                     ".*_elbow_pitch_joint",
-                    ".*_wrist_.*",
+                    # ".*_wrist_.*",
                 ],
             )
         },
@@ -310,18 +310,18 @@ class CR1BRewards(RewardsCfg):
         weight=-0.5,
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=[".*_ankle_roll_link"]), 
-            "min_dist": 0.26, # 0.26
+            "min_dist": 0.30, # 0.26
             "max_dist": 0.40},
     )
     body_ang_vel_xy_l2 = RewTerm(
         func=mdp.body_ang_vel_xy_l2,
         weight=-0.05,
-        params={"asset_cfg": SceneEntityCfg("robot", body_names=["body_link"])},
+        params={"asset_cfg": SceneEntityCfg("robot", body_names=["waist_yaw_link"])},
     )
     
     
 @configclass
-class CR1BMirrorCfg(MirrorCfg):
+class CR1BSMirrorCfg(MirrorCfg):
     
     def __init__(self):
         # Joint IDs
@@ -473,9 +473,9 @@ class CR1BMirrorCfg(MirrorCfg):
         self.policy_obvs_opposite_id.extend([ACTIONS   + joint_id for joint_id in self.action_opposite_id_a])
 
 @configclass
-class CR1BRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
-    rewards: CR1BRewards = CR1BRewards()
-    mirror_cfg: CR1BMirrorCfg = CR1BMirrorCfg()
+class CR1BSRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
+    rewards: CR1BSRewards = CR1BSRewards()
+    mirror_cfg: CR1BSMirrorCfg = CR1BSMirrorCfg()
 
     def __post_init__(self):
         # post init of parent
@@ -526,7 +526,7 @@ class CR1BRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.commands.base_velocity.ranges.ang_vel_z = (-1.0, 1.0)
 
         # terminations
-        self.terminations.base_contact.params["sensor_cfg"].body_names = "body_link"
+        self.terminations.base_contact.params["sensor_cfg"].body_names = "waist_yaw_link"
         self.terminations.arm_contact.params["sensor_cfg"].body_names = ".*_shoulder_.*"
         self.terminations.elbow_contact.params["sensor_cfg"].body_names = ".*_elbow_.*"
 

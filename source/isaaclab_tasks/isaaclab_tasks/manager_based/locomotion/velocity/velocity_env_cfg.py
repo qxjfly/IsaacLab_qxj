@@ -141,7 +141,13 @@ class ActionsCfg:
                                                         "left_ankle_pitch_joint",
                                                         "right_ankle_pitch_joint",
                                                         "left_ankle_roll_joint",
-                                                        "right_ankle_roll_joint"], 
+                                                        "right_ankle_roll_joint",
+                                                        # "waist_yaw_joint",#17
+                                                        # "left_shoulder_roll_joint",#18
+                                                        # "right_shoulder_roll_joint",#19
+                                                        # "left_shoulder_yaw_joint",#20
+                                                        # "right_shoulder_yaw_joint",#21
+                                                        ], 
                                            scale=0.5, 
                                            use_default_offset=True)
 
