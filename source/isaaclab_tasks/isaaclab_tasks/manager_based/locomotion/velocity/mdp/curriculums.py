@@ -180,8 +180,8 @@ def modify_command_velocity(
         rew = env.reward_manager._episode_sums[term_name][env_ids]
         if torch.mean(rew) / env.max_episode_length > 0.76 * term_cfg.weight * env.step_dt:
             curr_lin_vel_x = (
-                # np.clip(curr_lin_vel_x[0] - 0.5, max_velocity[0], 0.), 
-                np.clip(curr_lin_vel_x[0], max_velocity[0], 0.), 
+                np.clip(curr_lin_vel_x[0] - 0.5, max_velocity[0], 0.), 
+                # np.clip(curr_lin_vel_x[0], max_velocity[0], 0.), 
                 np.clip(curr_lin_vel_x[1] + 0.2, 0., max_velocity[1])
             )
             command_cfg.ranges.lin_vel_x = curr_lin_vel_x

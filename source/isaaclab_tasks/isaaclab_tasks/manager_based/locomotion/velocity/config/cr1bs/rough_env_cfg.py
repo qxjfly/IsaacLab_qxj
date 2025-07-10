@@ -15,7 +15,7 @@ from isaaclab_tasks.manager_based.locomotion.velocity.config.cr1bs.mirror_cfg im
 # Pre-defined configs
 ##
 from isaaclab_assets import G1_MINIMAL_CFG, Wukong4_MINIMAL_CFG, CR01A_MINIMAL_CFG, CR01A_RL_CFG, CR01A_noarm_MINIMAL_CFG # isort: skip
-from isaaclab_assets import CR01ADC_MINIMAL_CFG, CR01ADC_noarm_MINIMAL_CFG, CR01B_RL_CFG # 
+from isaaclab_assets import CR01ADC_MINIMAL_CFG, CR01ADC_noarm_MINIMAL_CFG, CR01B_RL_CFG, CR01BS_RL_CFG # 
 
 @configclass
 class CR1BSRewards(RewardsCfg):
@@ -46,7 +46,24 @@ class CR1BSRewards(RewardsCfg):
             "vel_threshold": 0.1,
         },
     )
-
+    feet_air_time2 = RewTerm(
+        func=mdp.feet_air_time,
+        weight= 0.0,#0.5,qqq
+        params={
+            "command_name": "base_velocity",
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
+            "threshold": 0.38,
+        },
+    )
+    # feet_double_contact_time = RewTerm(
+    #     func=mdp.feet_both_contact_time,
+    #     weight= 0.0,
+    #     params={
+    #         "command_name": "base_velocity",
+    #         "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
+    #         "vel_threshold": 0.5,
+    #     },
+    # )
     # 支撑脚部滑动惩罚
     feet_slide = RewTerm(
         func=mdp.feet_slide,
@@ -69,13 +86,25 @@ class CR1BSRewards(RewardsCfg):
     joint_deviation_leg_roll = RewTerm(
         func=mdp.joint_deviation_l1,
         weight=-0.1,
-        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_roll_joint", ".*_ankle_roll_joint"])},
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_roll_joint"])},
     )
     # 惩罚hip关节roll yaw ankle关节 roll偏离默认值
     joint_deviation_leg_yaw = RewTerm(
         func=mdp.joint_deviation_l1,
         weight=-0.1,
-        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_yaw_joint"])},
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_yaw_joint",".*_ankle_pitch_joint"])},
+    )
+    # 惩罚roll ankle关节 roll偏离默认值
+    joint_deviation_ankle_roll = RewTerm(
+        func=mdp.joint_deviation_l1,
+        weight=-0.1,
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_ankle_roll_joint"])},
+    )
+    # 惩罚roll ankle关节 roll偏离默认值
+    joint_deviation_hip_pitch = RewTerm(
+        func=mdp.joint_deviation_l1,
+        weight=-0.02,
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_pitch_joint"])},
     )
     
     #惩罚arm关节偏离默认值
@@ -148,7 +177,7 @@ class CR1BSRewards(RewardsCfg):
     #双脚腾空惩罚
     feet_both_air = RewTerm(
         func=mdp.feet_both_air,
-        weight=-50,
+        weight=-150,
         params={
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
             "asset_cfg": SceneEntityCfg("robot", body_names=".*_ankle_roll_link"),
@@ -174,6 +203,7 @@ class CR1BSRewards(RewardsCfg):
         params={
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
             "asset_cfg": SceneEntityCfg("robot", joint_names=".*_knee_joint"),
+            "command_name": "base_velocity",
             "threshold": 0.05,
         },
     )
@@ -184,11 +214,36 @@ class CR1BSRewards(RewardsCfg):
         weight=-3.0e-5,#  -4.0e-5
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_roll_joint"])},
     )
+    joint_hip_roll_torque_max = RewTerm(
+        func=mdp.joint_torques_max,
+        weight=-0.01,#  -4.0e-5
+        params={"threshold": 90,
+                "asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_roll_joint"])},
+    )
+    joint_ankle_roll_torque_max = RewTerm(
+        func=mdp.joint_torques_max,
+        weight=-0.01,#  -4.0e-5
+        params={"threshold": 30,
+                "asset_cfg": SceneEntityCfg("robot", joint_names=[".*_ankle_roll_joint"])},
+    )
+    joint_knee_torque_max = RewTerm(
+        func=mdp.joint_torques_max,
+        weight=-0.015,#  -4.0e-5
+        params={"threshold": 110,
+                "asset_cfg": SceneEntityCfg("robot", joint_names=[".*_knee_joint"])},
+    )
+    joint_ankle_pitch_torque_max = RewTerm(
+        func=mdp.joint_torques_max,
+        weight=-0.015,#  -4.0e-5
+        params={"threshold": 110,
+                "asset_cfg": SceneEntityCfg("robot", joint_names=[".*_ankle_pitch_joint"])},
+    )
     #惩罚ankle_pitch关节力矩法
-    joint_ankle_pitch_torque_l2 = RewTerm(
+    joint_knee_torque_l2 = RewTerm(
         func=mdp.joint_torques_hip_roll_l2,
         weight=-8.0e-6,#  -4.0e-5
-        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_ankle_pitch_joint"])},
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_ankle_roll_joint"])},
+        # params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_knee_joint"])},
     )
 
     #惩罚ankle_pitch 不平行身体
@@ -213,7 +268,7 @@ class CR1BSRewards(RewardsCfg):
         func=mdp.joint_knee_pos_limit,
         weight=-2,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_knee_joint"]),
-                "max": 1.5,
+                "max": 1.5,#1.6
                 "min":-0.15},
     )
 
@@ -227,6 +282,14 @@ class CR1BSRewards(RewardsCfg):
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
             "asset_cfg": SceneEntityCfg("robot", body_names=".*_ankle_roll_link"),
             "threshold": 0.2, 
+        },
+    )
+    leg_swing_pos = RewTerm(
+        func=mdp.leg_swing_pos,
+        weight= 0.15, 
+        params={
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
+            "asset_cfg": SceneEntityCfg("robot", joint_names=".*_hip_pitch_joint"),
         },
     )
 
@@ -280,6 +343,24 @@ class CR1BSRewards(RewardsCfg):
             "ratio": -1.0,
         },
     )
+    reward_joint_coordination_lankle = RewTerm(
+        func=mdp.joint_coordination,
+        weight=-0.5,
+        params={
+            "joint1_cfg": SceneEntityCfg("robot", joint_names=["left_hip_pitch_joint"]), 
+            "joint2_cfg": SceneEntityCfg("robot", joint_names=["left_ankle_pitch_joint"]),
+            "ratio": -1.0,
+        },
+    )
+    reward_joint_coordination_rankle = RewTerm(
+        func=mdp.joint_coordination,
+        weight=-0.5,
+        params={
+            "joint1_cfg": SceneEntityCfg("robot", joint_names=["right_hip_pitch_joint"]), 
+            "joint2_cfg": SceneEntityCfg("robot", joint_names=["right_ankle_pitch_joint"]),
+            "ratio": -1.0,
+        },
+    )
     joint_coordination_larm_leg = RewTerm(
         func=mdp.joint_coordination,
         weight=-0.5,
@@ -310,15 +391,22 @@ class CR1BSRewards(RewardsCfg):
         weight=-0.5,
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=[".*_ankle_roll_link"]), 
-            "min_dist": 0.30, # 0.26
-            "max_dist": 0.40},
+            "min_dist": 0.28, # 0.26
+            "max_dist": 0.33},
     )
     body_ang_vel_xy_l2 = RewTerm(
         func=mdp.body_ang_vel_xy_l2,
         weight=-0.05,
         params={"asset_cfg": SceneEntityCfg("robot", body_names=["waist_yaw_link"])},
     )
-    
+
+    knee_dof_acc_l2 = RewTerm(
+        func=mdp.joint_acc_l2, 
+        weight=-2.5e-7,
+        params={
+            "asset_cfg": SceneEntityCfg("robot", joint_names=".*_knee_joint"),
+        }
+    )
     
 @configclass
 class CR1BSMirrorCfg(MirrorCfg):
@@ -330,32 +418,24 @@ class CR1BSMirrorCfg(MirrorCfg):
         waistYaw = 2
         lhipRoll = 3
         rhipRoll = 4
-        waistRoll = 5
-        lhipYaw = 6
-        rhipYaw = 7
-        waistPitch = 8
-        lknee = 9
-        rknee = 10
-        lshoulderPitch = 11
-        rshoulderPitch = 12
-        lankle1 = 13
-        rankle1 = 14
-        lshoulderRoll = 15
-        rshoulderRoll = 16
-        lankle2 = 17
-        rankle2 = 18
-        lshoulderYaw = 19
-        rshoulderYaw = 20
-        lelbowPitch = 21
-        relbowPitch = 22
-        lwristYaw = 23
-        rwristYaw = 24
-        lwristPitch = 25
-        rwristPitch = 26
-        lwristRoll = 27
-        rwristRoll = 28
+        lshoulderPitch = 5
+        rshoulderPitch = 6
+        lhipYaw = 7
+        rhipYaw = 8
+        lshoulderRoll = 9
+        rshoulderRoll = 10
+        lknee = 11
+        rknee = 12
+        lshoulderYaw = 13
+        rshoulderYaw = 14
+        lankle1 = 15
+        rankle1 = 16
+        lelbowPitch = 17
+        relbowPitch = 18
+        lankle2 = 19
+        rankle2 = 20
 
-        JOINT_NUM = 29
+        JOINT_NUM = 21
 
         lhipPitch_a = 0
         lshoulderPitch_a = 1
@@ -366,13 +446,18 @@ class CR1BSMirrorCfg(MirrorCfg):
         lhipYaw_a = 6
         rhipYaw_a = 7
         lknee_a = 8
-        lelbowPitch_a = 9
-        rknee_a = 10
-        relbowPitch_a = 11
-        lankle1_a = 12
-        rankle1_a = 13
-        lankle2_a = 14
-        rankle2_a = 15
+        # lelbowPitch_a = 9
+        rknee_a = 9
+        # relbowPitch_a = 11
+        lankle1_a = 10
+        rankle1_a = 11
+        lankle2_a = 12
+        rankle2_a = 13
+        waistYaw_a = 14
+        # lshoulderRoll_a = 17
+        # rshoulderRoll_a = 18
+        # lshoulderYaw_a = 19
+        # rshoulderYaw_a = 20
 
         # 关节默认排序 对应的aciton id
         # lhipPitch_a = 0
@@ -399,6 +484,9 @@ class CR1BSMirrorCfg(MirrorCfg):
             lknee,
             lankle1,
             lankle2,
+            # lshoulderRoll,
+            # lshoulderYaw,
+            # lelbowPitch,
         ]
         right_joint_ids = [
             rhipPitch,
@@ -407,6 +495,9 @@ class CR1BSMirrorCfg(MirrorCfg):
             rknee,
             rankle1,
             rankle2,
+            # rshoulderRoll,
+            # rshoulderYaw,
+            # relbowPitch,
         ]
 
         left_joint_ids_a  = [
@@ -416,6 +507,9 @@ class CR1BSMirrorCfg(MirrorCfg):
             lknee_a,
             lankle1_a,
             lankle2_a,
+            # lshoulderRoll_a,
+            # lshoulderYaw_a,
+            # lelbowPitch_a,
         ]
 
         right_joint_ids_a = [
@@ -425,6 +519,9 @@ class CR1BSMirrorCfg(MirrorCfg):
             rknee_a,
             rankle1_a,
             rankle2_a,
+            # rshoulderRoll_a,
+            # rshoulderYaw_a,
+            # relbowPitch_a,
         ]
 
         self.action_mirror_id_left  = left_joint_ids_a.copy()
@@ -433,18 +530,26 @@ class CR1BSMirrorCfg(MirrorCfg):
         self.action_opposite_id = [
             lhipRoll,
             rhipRoll,
-            lhipYaw,
-            rhipYaw,
+            # lhipYaw,
+            # rhipYaw,
             lankle2,
             rankle2,
+        #     lshoulderRoll,
+        #     rshoulderRoll,
+        #     lshoulderYaw,
+        #     rshoulderYaw,
         ]
         self.action_opposite_id_a = [
             lhipRoll_a,
             rhipRoll_a,
-            lhipYaw_a,
-            rhipYaw_a,
+            # lhipYaw_a,
+            # rhipYaw_a,
             lankle2_a,
             rankle2_a,
+            # lshoulderRoll_a,
+            # rshoulderRoll_a,
+            # lshoulderYaw_a,
+            # rshoulderYaw_a,
         ]
 
         BASE_ANG_VEL      = 0
@@ -484,7 +589,7 @@ class CR1BSRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         # self.scene.robot = G1_MINIMAL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
         # self.scene.height_scanner.prim_path = "{ENV_REGEX_NS}/Robot/torso_link" #高度观测器的 base_link
         # self.scene.robot = Wukong4_MINIMAL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
-        self.scene.robot = CR01B_RL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+        self.scene.robot = CR01BS_RL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
         # self.scene.robot = CR01A_MINIMAL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
         # self.scene.robot = CR01A_noarm_MINIMAL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
         # self.scene.robot = CR01ADC_noarm_MINIMAL_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
@@ -531,7 +636,7 @@ class CR1BSRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.terminations.elbow_contact.params["sensor_cfg"].body_names = ".*_elbow_.*"
 
 @configclass
-class CR1BRoughEnvCfg_PLAY(CR1BRoughEnvCfg):
+class CR1BRoughEnvCfg_PLAY(CR1BSRoughEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()

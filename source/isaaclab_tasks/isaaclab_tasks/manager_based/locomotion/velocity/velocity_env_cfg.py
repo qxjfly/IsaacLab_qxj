@@ -135,14 +135,14 @@ class ActionsCfg:
                                                         "left_hip_yaw_joint",
                                                         "right_hip_yaw_joint",
                                                         "left_knee_joint",
-                                                        "left_elbow_pitch_joint",
+                                                        # "left_elbow_pitch_joint",
                                                         "right_knee_joint",
-                                                        "right_elbow_pitch_joint",
+                                                        # "right_elbow_pitch_joint",
                                                         "left_ankle_pitch_joint",
                                                         "right_ankle_pitch_joint",
                                                         "left_ankle_roll_joint",
                                                         "right_ankle_roll_joint",
-                                                        # "waist_yaw_joint",#17
+                                                        "waist_yaw_joint",#17
                                                         # "left_shoulder_roll_joint",#18
                                                         # "right_shoulder_roll_joint",#19
                                                         # "left_shoulder_yaw_joint",#20
@@ -236,7 +236,7 @@ class EventCfg:
         func=mdp.randomize_rigid_body_mass,
         mode="startup",
         params={
-            "asset_cfg": SceneEntityCfg("robot", body_names="body_link"),
+            "asset_cfg": SceneEntityCfg("robot", body_names="waist_yaw_link"),
             "mass_distribution_params": (-2.5, 2.5),
             "operation": "add",
         },
@@ -382,6 +382,16 @@ class TerminationsCfg:
         func=mdp.illegal_contact,
         params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names="base"), "threshold": 1.0},
     )
+    base_height = DoneTerm(
+        func=mdp.illegal_height,
+        params={"asset_cfg": SceneEntityCfg("robot", body_names="base_link"),
+                "command_name": "base_velocity",
+                 "threshold": 0.85},
+    )
+    # knee_torque = DoneTerm(
+    #     func=mdp.illegal_torque,
+    #     params={"asset_cfg": SceneEntityCfg("robot", joint_names=".*_knee_joint"), "threshold": 100},
+    # )
 
 
 @configclass
@@ -395,8 +405,8 @@ class CurriculumCfg:
     #                                      "starting_step": 1500 * 24})
     # command vel follows curriculum
     command_vel = CurrTerm(func=mdp.modify_command_velocity,
-                           params={"term_name": "track_lin_vel_xy_exp", "max_velocity": [-0.5, 1.5],
-                                   "interval": 1000 * 24, "starting_step": 1000 * 24})
+                           params={"term_name": "track_lin_vel_xy_exp", "max_velocity": [-0.8, 1.2],
+                                   "interval": 1000 * 24, "starting_step": 3000 * 24})
     
     # modify_reward_weight = CurrTerm(func=mdp.modify_reward_weight,
     #                        params={"term_name": "step_knee2",

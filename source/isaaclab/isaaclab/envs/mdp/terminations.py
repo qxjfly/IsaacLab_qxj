@@ -156,3 +156,24 @@ def illegal_contact(env: ManagerBasedRLEnv, threshold: float, sensor_cfg: SceneE
     return torch.any(
         torch.max(torch.norm(net_contact_forces[:, :, sensor_cfg.body_ids], dim=-1), dim=1)[0] > threshold, dim=1
     )
+
+def illegal_height(env: ManagerBasedRLEnv, command_name: str, threshold: float, asset_cfg: SceneEntityCfg) -> torch.Tensor:
+    """Terminate when the contact force on the sensor exceeds the force threshold."""
+    # extract the used quantities (to enable type-hinting)
+    asset = env.scene[asset_cfg.name]
+    vel_temp = torch.norm(env.command_manager.get_command(command_name)[:, :2], dim=1)
+    pos_z = asset.data.body_pos_w[:, asset_cfg.body_ids, 2]
+    # check if any contact force exceeds the threshold
+    low_height = threshold-0.05*torch.clamp((vel_temp - 0.85),min=0)
+    # return torch.any(pos_z < threshold, dim=1)
+    return torch.any(pos_z < low_height , dim=1)
+
+def illegal_torque(env: ManagerBasedRLEnv, threshold: float, asset_cfg: SceneEntityCfg) -> torch.Tensor:
+    """Terminate when the contact force on the sensor exceeds the force threshold."""
+    # extract the used quantities (to enable type-hinting)
+    asset = env.scene[asset_cfg.name]
+    
+    torque = asset.data.applied_torque[:, asset_cfg.joint_ids]
+    # check if any contact force exceeds the threshold
+    
+    return torch.any(torch.abs(torque) > threshold, dim=1)

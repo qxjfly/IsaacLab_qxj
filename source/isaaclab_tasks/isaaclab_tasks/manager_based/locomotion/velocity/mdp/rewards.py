@@ -42,9 +42,8 @@ def feet_air_time(
     first_contact = contact_sensor.compute_first_contact(env.step_dt)[:, sensor_cfg.body_ids]
     last_air_time = contact_sensor.data.last_air_time[:, sensor_cfg.body_ids]
     reward = torch.sum((last_air_time - threshold) * first_contact, dim=1)
-
     # no reward for zero command
-    reward *= torch.norm(env.command_manager.get_command(command_name)[:, :2], dim=1) > 0.1 
+    reward *= torch.norm(env.command_manager.get_command(command_name)[:, :3], dim=1) > 0.6 
     return reward
 
 
@@ -71,6 +70,43 @@ def feet_air_time_positive_biped(
     reward = torch.min(torch.where(single_stance.unsqueeze(-1), in_mode_time, 0.0), dim=1)[0]
     reward = torch.clamp(reward, max=threshold)
     # no reward for zero command
+    reward *= torch.norm(env.command_manager.get_command(command_name)[:, :3], dim=1) > vel_threshold
+    return reward
+
+def feet_both_contact_time(
+        env, 
+        command_name: str, 
+        sensor_cfg: SceneEntityCfg,
+        vel_threshold: float = 0.5) -> torch.Tensor:
+    """Reward long steps taken by the feet for bipeds.
+
+    This function rewards the agent for taking steps up to a specified threshold and also keep one foot at
+    a time in the air.
+
+    If the commands are small (i.e. the agent is not supposed to take a step), then the reward is zero.
+    """
+    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+    # compute the reward
+    contact_time = contact_sensor.data.current_contact_time[:, sensor_cfg.body_ids]
+    contact_time_double = contact_time.min(dim=1).values #.unsqueeze(1)
+    both_contact_rew = torch.where(
+        contact_time_double < 0.1, 
+        0.8 * contact_time_double,  # 
+        torch.where(
+            contact_time_double <= 0.2, # 
+            1.0 * contact_time_double,  # 
+            -2.0 * contact_time_double  # 
+        )
+    )
+    in_contact = contact_time > 0.0
+    double_stance = torch.sum(in_contact.int(), dim=1) > 1.2
+
+    reward = torch.where(
+        double_stance,
+        both_contact_rew,
+        0.0
+    )
+    
     reward *= torch.norm(env.command_manager.get_command(command_name)[:, :3], dim=1) > vel_threshold
     return reward
 
@@ -108,7 +144,8 @@ def track_lin_vel_xy_yaw_frame_exp(
         torch.square(env.command_manager.get_command(command_name)[:, :2] - vel_yaw[:, :2]), dim=1
     )
     #qxj add
-    vel_temp = torch.norm(env.command_manager.get_command(command_name)[:, :2], dim=1)
+    # vel_temp = torch.norm(env.command_manager.get_command(command_name)[:, :2], dim=1)
+    vel_temp = torch.norm(env.command_manager.get_command(command_name)[:, :3], dim=1)
     vel_mask = vel_temp >= 0.1
     lin_vel_error = lin_vel_error * vel_mask
     #qxj add
@@ -127,12 +164,13 @@ def track_ang_vel_z_world_exp(
     ang_vel_error = torch.square(env.command_manager.get_command(command_name)[:, 2] - asset.data.root_ang_vel_w[:, 2])
 
     #qxj add
-    vel_temp = torch.norm(env.command_manager.get_command(command_name)[:, :2], dim=1)
+    # vel_temp = torch.norm(env.command_manager.get_command(command_name)[:, :2], dim=1)
+    vel_temp = torch.norm(env.command_manager.get_command(command_name)[:, :3], dim=1)
     vel_mask = vel_temp >= 0.1
     ang_vel_error = ang_vel_error * vel_mask
     #qxj add
-
-    return torch.exp(-ang_vel_error / std**2) * vel_mask
+    return torch.exp(-ang_vel_error / std**2)
+    # return torch.exp(-ang_vel_error / std**2) * vel_mask
 
 def feet_air_height_exp(
         env: ManagerBasedRLEnv, 
@@ -149,7 +187,7 @@ def feet_air_height_exp(
 
     asset = env.scene[asset_cfg.name]
     feet_height = asset.data.body_pos_w[:, asset_cfg.body_ids, 2] #zpos
-    error_feet_height =torch.clamp(feet_height - threshold, max=0) #feet_height - threshold
+    error_feet_height =torch.clamp(feet_height - threshold, max=0.03) #feet_height - threshold
 
     reward = torch.exp(error_feet_height/std)
 
@@ -166,8 +204,12 @@ def root_height_l1(
     
     pos_z = asset.data.body_pos_w[:, asset_cfg.body_ids, 2]
     pos_z_ref = threshold
-    delta_z = torch.abs(pos_z - pos_z_ref)
-    return delta_z.squeeze() 
+    # delta_z = torch.abs(pos_z - pos_z_ref)
+    delta_z = pos_z - pos_z_ref
+    clamped_delta_z = torch.clamp(delta_z, 
+                                  min=-1.0, 
+                                  max=0.05)
+    return clamped_delta_z.squeeze() 
 
 def root_height_exp_zq(
         env: ManagerBasedRLEnv, 
@@ -187,8 +229,9 @@ def feet_air_height_lowvel(
 ) -> torch.Tensor:
     # Penalize low vel ：feet 离开地面  ：Z的高度 
     asset = env.scene[asset_cfg.name]
-    vel_temp = torch.norm(env.command_manager.get_command(command_name)[:, :2], dim=1)
-    vel_mask = vel_temp < 0.1
+    # vel_temp = torch.norm(env.command_manager.get_command(command_name)[:, :2], dim=1)
+    vel_temp = torch.norm(env.command_manager.get_command(command_name)[:, :3], dim=1)
+    vel_mask = vel_temp < 0.1 #0.1
     
     feet_height = asset.data.body_pos_w[:, asset_cfg.body_ids, 2] #zpos
     error_feet_height = feet_height - threshold
@@ -271,14 +314,18 @@ def feet_step_knee(
     env: ManagerBasedRLEnv, 
     sensor_cfg: SceneEntityCfg, 
     asset_cfg: SceneEntityCfg, 
+    command_name: str,
     threshold: float
 ) -> torch.Tensor:
     """
         惩罚 接触地面时 左右腿knee关节 与期望值的差值
         
     """
-    temp_s = 1.0
-
+    #**add
+    # vel_temp = env.command_manager.get_command(command_name)[:, 0]
+    # vel_mask = vel_temp > 0.1
+    vel_mask = 1.0
+    #*****
     asset = env.scene[asset_cfg.name]
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
     # compute the reward
@@ -292,7 +339,7 @@ def feet_step_knee(
 
     reward = torch.sum(knee_angle_delta,dim=-1)
 
-    return reward * first_contact_flag * temp_s
+    return reward * first_contact_flag * vel_mask
 
 def joint_torques_hip_roll_l2(
         env: ManagerBasedRLEnv, 
@@ -304,6 +351,18 @@ def joint_torques_hip_roll_l2(
     asset: Articulation = env.scene[asset_cfg.name]
 
     return torch.sum(torch.square(asset.data.applied_torque[:, asset_cfg.joint_ids]), dim=1)
+def joint_torques_max(
+        env: ManagerBasedRLEnv, 
+        threshold: float,
+        asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+        ) -> torch.Tensor:
+    """Penalize joint torques applied on the articulation using L2 squared kernel.
+
+    NOTE: Only the joints configured in :attr:`asset_cfg.joint_ids` will have their joint torques contribute to the term.
+    """
+    asset: Articulation = env.scene[asset_cfg.name]
+    torque_max = torch.clamp(torch.abs(asset.data.applied_torque[:, asset_cfg.joint_ids]) - threshold, min = 0)
+    return torch.sum(torque_max, dim=1)
 
 def joint_parallel_anklepitch_l1(
         env: ManagerBasedRLEnv, 
@@ -407,7 +466,32 @@ def reward_step_length_cache_ref(
     
     # 合并多脚奖励（使用mean代替sum防止形状不匹配）
     return reward.mean(dim=1)  # 形状: (num_envs,)
+def leg_swing_pos(
+    env: ManagerBasedRLEnv, 
+    sensor_cfg: SceneEntityCfg, 
+    asset_cfg: SceneEntityCfg, 
+) -> torch.Tensor:
+    
+    asset = env.scene[asset_cfg.name]
+    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
 
+    contact_force = contact_sensor.data.net_forces_w_history[:, :, sensor_cfg.body_ids].norm(dim=-1).min(dim=1)[0]
+
+    in_swing = contact_force < 5.0  #swing leg
+
+    allswing_flag = torch.all(in_swing, dim=1)  #all swing
+
+    swing_hip_pitch_pos =asset.data.joint_pos[:, asset_cfg.joint_ids]  #hip_pitch_pos
+
+    pos_error = torch.clamp(swing_hip_pitch_pos, min=0)  # 
+
+    pos_reward = torch.exp(-pos_error / 0.05)
+
+    swing_mask = in_swing.float()
+
+    weighted_rewards = pos_reward * swing_mask
+    
+    return torch.mean(weighted_rewards, dim=-1) * (~allswing_flag).float()
 def feet_stand_pos3(
     env: ManagerBasedRLEnv, 
     command_name: str, 
@@ -432,21 +516,21 @@ def feet_stand_pos3(
 
     stand_feet = contact_sensor.data.net_forces_w_history[:, :, sensor_cfg.body_ids].norm(dim=-1).min(dim=1)[0]
 
-    in_stand = stand_feet < 5.0
+    in_stand = stand_feet < 5.0  #swing leg
 
-    stand_flag = torch.all(in_stand, dim=1)
+    stand_flag = torch.all(in_stand, dim=1)  #all swing
 
-    stand_feet_pos =asset.data.body_pos_w[:, asset_cfg.body_ids, :]
+    stand_feet_pos =asset.data.body_pos_w[:, asset_cfg.body_ids, :]  #feet pos
 
-    base_link_pos = asset.data.root_link_pos_w
+    base_link_pos = asset.data.root_link_pos_w  # base pos
 
-    pos_error_w = stand_feet_pos - base_link_pos.unsqueeze(1)
+    pos_error_w = stand_feet_pos - base_link_pos.unsqueeze(1) #feet pos - base pos
 
-    body_quat_w = asset.data.root_link_quat_w
+    body_quat_w = asset.data.root_link_quat_w  #四元数
 
-    body_quat_wz = yaw_quat(body_quat_w)
+    body_quat_wz = yaw_quat(body_quat_w)  #only-z
 
-    pos_error_b = quat_rotate_inverse(body_quat_wz.unsqueeze(1), pos_error_w)
+    pos_error_b = quat_rotate_inverse(body_quat_wz.unsqueeze(1), pos_error_w) #相对位置
 
     pos_error = torch.clamp(threshold - pos_error_b[:,:,0], min=0)  # 未达目标时惩罚
     pos_reward = torch.exp(-(pos_error**2) / 0.05)
@@ -472,8 +556,9 @@ def feet_contact_vel(
     first_contact = contact_sensor.compute_first_contact(env.step_dt)[:, sensor_cfg.body_ids]
     asset = env.scene[asset_cfg.name]
 
-    body_vel = asset.data.body_lin_vel_w[:, asset_cfg.body_ids, :3] #xyz
-    reward = torch.sum(body_vel.norm(dim=-1) * first_contact, dim=1)
+    body_vel = asset.data.body_lin_vel_w[:, asset_cfg.body_ids, 2] #xyz
+    reward = torch.sum(torch.abs(body_vel) * first_contact, dim=1)
+    # reward = torch.sum(body_vel.norm(dim=-1) * first_contact, dim=1)
     return reward
 
 def feet_contact_forces(
@@ -678,8 +763,8 @@ def feet_step_distance_zq(
     foot_pos = asset.data.body_pos_w[:, asset_cfg.body_ids, :2] # xy
 
     foot_dist = torch.norm(foot_pos[:, 0, :] - foot_pos[:, 1, :], dim=1)
-    fd = 0.3 * vel #0.3
-    max_df = 1.5 * vel#0.8
+    fd = 0.35 * vel #0.3
+    max_df = 0.9 * vel#0.5
     d_min = torch.clamp(foot_dist - fd, -0.5, 0.)
     d_max = torch.clamp(foot_dist - max_df, 0, 0.5)
 

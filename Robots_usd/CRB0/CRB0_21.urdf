@@ -61,7 +61,7 @@
     <link name="waist_roll_link">
         <inertial>
             <origin xyz="-0.00258 0.00086 0.09228" rpy="0 0 0"/>
-            <mass value="1.40004"/><!--3.4-->
+            <mass value="1.000"/><!--3.4-->
             <inertia ixx="0.01263" ixy="-0.00006" ixz="-0.0006" iyy="0.01307" iyz="-0.00004"
                      izz="0.00876"/>
         </inertial>
@@ -601,7 +601,7 @@
         </collision>
     </link>
     <joint name="left_hip_pitch_joint" type="revolute">
-        <origin xyz="0 0.162 0" rpy="0 0 0"/>
+        <origin xyz="0 0.162 0.0" rpy="0 0 0"/>
         <parent link="base_link"/>
         <child link="left_hip_pitch_link"/>
         <axis xyz="0 1 0"/>
