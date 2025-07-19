@@ -150,6 +150,27 @@ class ActionsCfg:
                                                         ], 
                                            scale=0.5, 
                                            use_default_offset=True)
+    # 站立姿态
+    # joint_pos = mdp.JointPositionActionCfg(asset_name="robot", 
+    #                                        preserve_order = True,
+    #                                        joint_names=["left_hip_pitch_joint",
+    #                                                     "right_hip_pitch_joint",
+    #                                                     "left_hip_roll_joint",
+    #                                                     "right_hip_roll_joint",
+    #                                                     "left_hip_yaw_joint",
+    #                                                     "right_hip_yaw_joint",
+    #                                                     "left_knee_joint",
+    #                                                     "right_knee_joint",
+    #                                                     "left_ankle_pitch_joint",
+    #                                                     "right_ankle_pitch_joint",
+    #                                                     "left_ankle_roll_joint",
+    #                                                     "right_ankle_roll_joint",
+    #                                                     "waist_yaw_joint",
+    #                                                     "waist_roll_joint",
+    #                                                     "waist_pitch_joint",
+    #                                                     ], 
+    #                                        scale=0.5, 
+    #                                        use_default_offset=True)
 
 @configclass
 class ObservationsCfg:
@@ -189,9 +210,27 @@ class ObservationsCfg:
         #                         B=[0.0, 0.0, 1.0]   # 延迟2个周期的系数
         #                     )],
         # ) #26
-
+        # 站立姿态不观测上身的关节角度
+        # joint_pos = ObsTerm(func=mdp.joint_pos_rel, 
+        #                     noise=Unoise(n_min=-0.01, n_max=0.01),
+        #                     params={
+        #                         "asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_.*",
+        #                                                                           ".*_knee_.*",
+        #                                                                           ".*_ankle_.*",
+        #                                                                           "waist_.*"]),
+        #                     },
+        #                     ) #26
         joint_vel = ObsTerm(func=mdp.joint_vel_rel, noise=Unoise(n_min=-1.5, n_max=1.5)) #26
-
+        # 站立姿态不观测上身的关节角度
+        # joint_vel = ObsTerm(func=mdp.joint_vel_rel, 
+        #                     noise=Unoise(n_min=-1.5, n_max=1.5),
+        #                     params={
+        #                         "asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_.*",
+        #                                                                           ".*_knee_.*",
+        #                                                                           ".*_ankle_.*",
+        #                                                                           "waist_.*"]),
+        #                     },
+        #                     )
         actions = ObsTerm(func=mdp.last_action) #26  // 3 + 3 + 3 + 3 + 26 + 26 + 26=90
 
         height_scan = ObsTerm(
@@ -237,7 +276,8 @@ class EventCfg:
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names="waist_yaw_link"),
-            "mass_distribution_params": (-2.5, 2.5),
+            "mass_distribution_params": (-1.0, 4.0),
+            # "mass_distribution_params": (-1.5, 4.0),
             "operation": "add",
         },
     )
@@ -248,6 +288,7 @@ class EventCfg:
     #     params={
     #         "asset_cfg": SceneEntityCfg("robot", body_names="body_link"),
     #         "com_range": {"x": (-0.05, 0.05), "y": (-0.05, 0.05), "z": (-0.01, 0.01)},
+    #         # "com_range": {"x": (-0.05, 0.05), "y": (-0.05, 0.05), "z": (-0.05, 0.05)},
     #     },
     # )
 
@@ -305,6 +346,7 @@ class EventCfg:
         params={
             "position_range": (0.5, 1.5),
             "velocity_range": (0.0, 0.0),
+            # "asset_cfg": SceneEntityCfg("robot", joint_names=[".*_shoulder_.*",".*_elbow_.*",".*_wrist_.*"]),
         },
     )
     joint_pd_randomization = EventTerm(
@@ -324,7 +366,7 @@ class EventCfg:
         func=mdp.push_by_setting_velocity,
         mode="interval",
         interval_range_s=(8.0, 12.0),
-        params={"velocity_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5)}},
+        params={"velocity_range": {"x": (-0.25, 0.25), "y": (-0.25, 0.25)}},
     )
 
 
@@ -386,7 +428,7 @@ class TerminationsCfg:
         func=mdp.illegal_height,
         params={"asset_cfg": SceneEntityCfg("robot", body_names="base_link"),
                 "command_name": "base_velocity",
-                 "threshold": 0.85},
+                 "threshold": 0.86},
     )
     # knee_torque = DoneTerm(
     #     func=mdp.illegal_torque,

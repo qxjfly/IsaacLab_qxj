@@ -596,8 +596,8 @@ class CR1BSRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.scene.height_scanner.prim_path = "{ENV_REGEX_NS}/Robot/base_link" #高度观测器的 base_link
 
         # Randomization
-        self.events.push_robot = None
-        self.events.add_base_mass = None
+        # self.events.push_robot = None
+        # self.events.add_base_mass = None
         self.events.reset_robot_joints.params["position_range"] = (1.0, 1.0)
         self.events.base_external_force_torque.params["asset_cfg"].body_names = ["base_link"]
         self.events.reset_base.params = {
@@ -636,7 +636,7 @@ class CR1BSRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.terminations.elbow_contact.params["sensor_cfg"].body_names = ".*_elbow_.*"
 
 @configclass
-class CR1BRoughEnvCfg_PLAY(CR1BSRoughEnvCfg):
+class CR1BSRoughEnvCfg_PLAY(CR1BSRoughEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()

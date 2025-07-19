@@ -222,12 +222,12 @@ def main():
         # run everything in inference mode
         with torch.inference_mode():
             # agent stepping
-            print("obs:",obs[0,:])
+            # print("obs:",obs[0,:])
             # out_qxj = traced_model.forward(obs.to(runner.agent.device))
             outputs = runner.agent.act(obs, timestep=0, timesteps=0)
             #*******************打印输出***********************
             # print("output_qxj: ",out_qxj[0,:])
-            print("outputs1: ",outputs[-1].get("mean_actions", outputs[0])[0,:])
+            # print("outputs1: ",outputs[-1].get("mean_actions", outputs[0])[0,:])
             #*******************打印输出***********************
             # - multi-agent (deterministic) actions
             if hasattr(env, "possible_agents"):
@@ -236,7 +236,7 @@ def main():
             else:
                 actions = outputs[-1].get("mean_actions", outputs[0])
             # env stepping
-            print("outputs2",actions[0,:])
+            # print("outputs2",actions[0,:])
             obs, _, _, _, _ = env.step(actions)
         if args_cli.video:
             timestep += 1

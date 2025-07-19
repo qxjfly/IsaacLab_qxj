@@ -178,7 +178,7 @@ def modify_command_velocity(
     if (env.common_step_counter > starting_step) and (env.common_step_counter % interval < 13):
         term_cfg = env.reward_manager.get_term_cfg(term_name)
         rew = env.reward_manager._episode_sums[term_name][env_ids]
-        if torch.mean(rew) / env.max_episode_length > 0.76 * term_cfg.weight * env.step_dt:
+        if torch.mean(rew) / env.max_episode_length > 0.76 * term_cfg.weight * env.step_dt:#应该是不需要* env.step_dt
             curr_lin_vel_x = (
                 np.clip(curr_lin_vel_x[0] - 0.5, max_velocity[0], 0.), 
                 # np.clip(curr_lin_vel_x[0], max_velocity[0], 0.), 

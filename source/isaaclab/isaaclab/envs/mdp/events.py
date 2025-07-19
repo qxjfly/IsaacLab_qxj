@@ -1038,7 +1038,7 @@ def reset_joints_by_scale(
     # get default joint state
     joint_pos = asset.data.default_joint_pos[env_ids].clone()
     joint_vel = asset.data.default_joint_vel[env_ids].clone()
-
+    # joint_defaultq = asset.data.default_joint_pos[env_ids].clone()
     # scale these values randomly
     joint_pos *= math_utils.sample_uniform(*position_range, joint_pos.shape, joint_pos.device)
     joint_vel *= math_utils.sample_uniform(*velocity_range, joint_vel.shape, joint_vel.device)
@@ -1049,7 +1049,9 @@ def reset_joints_by_scale(
     # clamp joint vel to limits
     joint_vel_limits = asset.data.soft_joint_vel_limits[env_ids]
     joint_vel = joint_vel.clamp_(-joint_vel_limits, joint_vel_limits)
-
+    # 站立姿态 只刷新手臂初始位置
+    # joint_defaultq[:,asset_cfg.joint_ids] = joint_pos[:,asset_cfg.joint_ids]
+    # asset.write_joint_state_to_sim(joint_defaultq, joint_vel, env_ids=env_ids)
     # set into the physics simulation
     asset.write_joint_state_to_sim(joint_pos, joint_vel, env_ids=env_ids)
 

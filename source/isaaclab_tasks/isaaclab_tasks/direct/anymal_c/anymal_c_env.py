@@ -148,10 +148,10 @@ class AnymalCEnv(DirectRLEnv):
             "undesired_contacts": contacts * self.cfg.undesired_contact_reward_scale * self.step_dt,
             "flat_orientation_l2": flat_orientation * self.cfg.flat_orientation_reward_scale * self.step_dt,
         }
-        reward = torch.sum(torch.stack(list(rewards.values())), dim=0)
+        reward = torch.sum(torch.stack(list(rewards.values())), dim=0) # 奖励函数按环境 进行加和（即每个环境的所有奖励加起来
         # Logging
         for key, value in rewards.items():
-            self._episode_sums[key] += value
+            self._episode_sums[key] += value #log 奖励为每个环境的对应key的奖励累加，直到reset时统一计算/刷新
         return reward
 
     def _get_dones(self) -> tuple[torch.Tensor, torch.Tensor]:

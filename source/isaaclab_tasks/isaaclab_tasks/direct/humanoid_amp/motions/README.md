@@ -31,3 +31,80 @@ python motion_viewer.py --file MOTION_FILE_NAME.npz
 ```
 
 See `python motion_viewer.py --help` for available arguments.
+
+## joint_names
+[
+'abdomen_x' 
+'abdomen_y' 
+'abdomen_z' 
+'neck_x' 
+'neck_y' 
+'neck_z'
+ 'right_shoulder_x' 
+ 'right_shoulder_y' 
+ 'right_shoulder_z' 
+ 'right_elbow'
+ 'left_shoulder_x' 
+ 'left_shoulder_y' 
+ 'left_shoulder_z' 
+ 'left_elbow'
+ 'right_hip_x' 
+ 'right_hip_y' 
+ 'right_hip_z' 
+ 'right_knee' 
+ 'right_ankle_x'
+ 'right_ankle_y' 
+ 'right_ankle_z' 
+ 'left_hip_x' 
+ 'left_hip_y' 
+ 'left_hip_z'
+ 'left_knee' 
+ 'left_ankle_x' 
+ 'left_ankle_y' 
+ 'left_ankle_z'
+ ]
+ [
+ 'pelvis' 
+ 'torso' 
+ 'head' 
+ 'right_upper_arm' 
+ 'right_lower_arm' 
+ 'right_hand'
+ 'left_upper_arm' 
+ 'left_lower_arm' 
+ 'left_hand' 
+ 'right_thigh' 
+ 'right_shin'
+ 'right_foot' 
+ 'left_thigh' 
+ 'left_shin' 
+ 'left_foot'
+ ]
+
+ CR1A
+left_hip_pitch_joint
+left_shoulder_pitch_joint
+right_hip_pitch_joint
+right_shoulder_pitch_joint
+left_hip_roll_joint
+left_shoulder_roll_joint
+right_hip_roll_joint
+right_shoulder_roll_joint
+left_hip_yaw_joint
+left_shoulder_yaw_joint
+right_hip_yaw_joint
+right_shoulder_yaw_joint
+left_knee_joint
+left_elbow_pitch_joint
+right_knee_joint
+right_elbow_pitch_joint
+left_ankle_pitch_joint
+left_wrist_yaw_joint
+right_ankle_pitch_joint
+right_wrist_yaw_joint
+left_ankle_roll_joint
+left_wrist_pitch_joint
+right_ankle_roll_joint
+right_wrist_pitch_joint
+left_wrist_roll_joint
+right_wrist_roll_joint

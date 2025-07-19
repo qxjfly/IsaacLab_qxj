@@ -121,7 +121,7 @@ class CR1BSFlatEnvCfg(CR1BSRoughEnvCfg):
         self.rewards.track_lin_vel_xy_exp.weight = 1.5 #
         self.rewards.track_ang_vel_z_exp.weight = 1.0 #
         self.rewards.lin_vel_z_l2.weight = -0.2
-        self.rewards.ang_vel_xy_l2.weight = -1.0 #-2.0 #-0.5
+        self.rewards.ang_vel_xy_l2.weight = -2.0 #-2.0 #-0.5
         self.rewards.flat_orientation_l2.weight = -5.0 # -5.0
         self.rewards.root_height.weight = 1.25# # 1.0
         self.rewards.root_height.params["threshold"] = 0.88 #default 0.85
@@ -139,15 +139,15 @@ class CR1BSFlatEnvCfg(CR1BSRoughEnvCfg):
         self.rewards.reward_joint_coordination_rankle.weight = 0.0
         # Joint limits
         self.rewards.dof_pos_limits.weight = -1.0
-        self.rewards.joint_hip_roll_torque_max.weight = -0.03
+        self.rewards.joint_hip_roll_torque_max.weight = -0.035
         self.rewards.joint_ankle_roll_torque_max.weight = -0.02
         self.rewards.joint_knee_torque_max.weight = -0.015
         self.rewards.joint_ankle_pitch_torque_max.weight = -0.015
         self.rewards.joint_hip_roll_torque_l2.weight = 0.0 #-6.0e-5 #-3.0e-5
         self.rewards.joint_knee_torque_l2.weight = 0.0 #-1.0e-5 #-3.0e-5 #-6.0e-5 # knee default -8.0e-6
         # Joint action
-        self.rewards.action_rate_l2.weight = -0.125 #-0.1 #-0.005 #-0.1
-        self.rewards.dof_acc_l2.weight = -1.0e-6 #-1.0e-7 # default-1.0e-7
+        self.rewards.action_rate_l2.weight = -0.1 #-0.1 #-0.005 #-0.1
+        self.rewards.dof_acc_l2.weight = -1.0e-6 # default-1.0e-7
         # lowvel
         self.rewards.joint_deviation_zero_lowvel.weight = -1.0 #-0.1 #-1.0 #-0.5
         self.rewards.feet_both_air.weight = -5
@@ -177,8 +177,8 @@ class CR1BSFlatEnvCfg(CR1BSRoughEnvCfg):
         self.rewards.feet_air_time.weight = 1.5 #1.75 #default 1.75
         self.rewards.feet_air_time.params["threshold"] = 0.55 # 0.45 #default 0.45s
         self.rewards.feet_air_height.weight = 0.3 # 0.35  0.3
-        self.rewards.feet_air_height.params["threshold"] = 0.12 #0.1 #default 0.12
-        self.rewards.step_knee.weight = -12.5 #-8 #default -5  -8  -10
+        self.rewards.feet_air_height.params["threshold"] = 0.135 #0.12 #default 0.12
+        self.rewards.step_knee.weight = -15 #-8 #default -5  -8  -10
         # Joint action
         self.rewards.dof_torques_l2.weight = -2.0e-6 
         self.rewards.dof_torques_l2.params["asset_cfg"] = SceneEntityCfg(
@@ -192,12 +192,12 @@ class CR1BSFlatEnvCfg(CR1BSRoughEnvCfg):
         #walk phase3
         self.rewards.reward_feet_contact_vel.weight = -4.0 #-2.0 #-0.5 #F3_reward
         self.rewards.step_distance.weight = 0.1
-        self.rewards.feet_swing_pos.weight = 0.0 #0.15 #
+        self.rewards.feet_swing_pos.weight = 0.15 #
         self.rewards.leg_swing_pos.weight = 0.0 #
         #joint limit
         self.rewards.knee_dof_acc_l2.weight = 0.0 #-2.0e-6 #-1.0e-5 #-2.0e-6
         #lowel
-        self.rewards.feet_air_height_lowvel.weight = -50 #-5
+        self.rewards.feet_air_height_lowvel.weight = -50 #-5 前期鼓励踏步 惩罚较小
         #None
         
         #Gait

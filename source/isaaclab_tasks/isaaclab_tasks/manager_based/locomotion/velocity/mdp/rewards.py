@@ -209,6 +209,7 @@ def root_height_l1(
     clamped_delta_z = torch.clamp(delta_z, 
                                   min=-1.0, 
                                   max=0.05)
+                                #   max=0.0) #站立姿态
     return clamped_delta_z.squeeze() 
 
 def root_height_exp_zq(
@@ -322,9 +323,9 @@ def feet_step_knee(
         
     """
     #**add
-    # vel_temp = env.command_manager.get_command(command_name)[:, 0]
-    # vel_mask = vel_temp > 0.1
-    vel_mask = 1.0
+    vel_temp = env.command_manager.get_command(command_name)[:, 0]
+    vel_mask = vel_temp > 0.1
+    # vel_mask = 1.0
     #*****
     asset = env.scene[asset_cfg.name]
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]

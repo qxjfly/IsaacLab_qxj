@@ -521,7 +521,7 @@ CR01A_CFG = ArticulationCfg(
             ],
             effort_limit={
                 ".*_hip_yaw_joint": 120.0,
-                ".*_hip_roll_joint": 80.0,#80
+                ".*_hip_roll_joint": 107.0,#80
                 ".*_hip_pitch_joint": 400.0,
                 ".*_knee_joint": 400.0,
             },
@@ -571,10 +571,10 @@ CR01A_CFG = ArticulationCfg(
                 ".*_wrist_roll_joint",
             ],
             effort_limit={
-                ".*_shoulder_pitch_joint": 80.0,
-                ".*_shoulder_roll_joint": 80.0,
-                ".*_shoulder_yaw_joint": 80.0,
-                ".*_elbow_pitch_joint": 80.0,
+                ".*_shoulder_pitch_joint": 107.0,
+                ".*_shoulder_roll_joint": 107.0,
+                ".*_shoulder_yaw_joint": 107.0,
+                ".*_elbow_pitch_joint": 107.0,
                 ".*_wrist_pitch_joint": 30.0,
                 ".*_wrist_yaw_joint": 30.0,
                 ".*_wrist_roll_joint": 30.0,

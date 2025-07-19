@@ -85,9 +85,9 @@ agent:
   entropy_loss_scale: 0.0
   value_loss_scale: 2.5
   discriminator_loss_scale: 5.0
-  amp_batch_size: 512 #512
-  task_reward_weight: 0.0
-  style_reward_weight: 1.0
+  amp_batch_size: 512 #512 #512
+  task_reward_weight: 0.4 # 0.7 from tienkung
+  style_reward_weight: 0.6 # 0.3 from tienkung
   discriminator_batch_size: 4096
   discriminator_reward_scale: 2.0
   discriminator_logit_regularization_scale: 0.05
@@ -100,12 +100,12 @@ agent:
     directory: "humanoid_amp_walk"
     experiment_name: ""
     write_interval: auto
-    checkpoint_interval: auto
+    checkpoint_interval: 2500 # auto
 
 
 # Sequential trainer
 # https://skrl.readthedocs.io/en/latest/api/trainers/sequential.html
 trainer:
   class: SequentialTrainer
-  timesteps: 100000
+  timesteps: 50000
   environment_info: log
