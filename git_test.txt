@@ -20,6 +20,9 @@ conda activate q_isaaclab
 Resume
 ./isaaclab.sh -p scripts/reinforcement_learning/rsl_rl/train.py --task Isaac-Velocity-Flat-CR1BS-v0 --resume true --load_run 2025-07-01_17-12-56 --checkpoint model_2000.pt
 
+tensor board  :  tensorboard --logdir=./
+
+
 left_hip_pitch 0
 left_shoulder_pitch 1
 right_hip_pitch 2

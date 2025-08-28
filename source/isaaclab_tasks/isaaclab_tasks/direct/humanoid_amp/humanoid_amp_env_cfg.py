@@ -26,13 +26,13 @@ class HumanoidAmpEnvCfg(DirectRLEnvCfg):
     """Humanoid AMP environment config (base class)."""
     # task reward cfg qxj add
     lin_vel_reward_scale = 1.0
-    ang_vel_reward_scale = -0.05
+    ang_vel_reward_scale = -0.1 #-0.05
     joint_torque_reward_scale = -2.5e-6 #-2.5e-5
     joint_acc_reward_scale = -1.0e-6 #-5.5e-7
-    action_rate_reward_scale = -0.1 # -0.01 
+    action_rate_reward_scale = -0.15 # -0.01 
     flat_orientation_reward_scale = -0.5 # -5.0 
-    termination_reward_scale = -0.0
-    deviation_pos_scale = -0.05
+    termination_reward_scale = -0.05
+    deviation_pos_scale = -0.01 #-0.05
     feet_slide_reward_scale = -0.25
     # none
     rew_termination = -0

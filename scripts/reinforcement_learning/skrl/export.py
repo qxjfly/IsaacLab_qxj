@@ -5,10 +5,10 @@ import gymnasium
 from gymnasium import spaces
 from skrl.models.torch import Model, GaussianMixin
 from skrl.utils.spaces.torch import unflatten_tensorized_space  # noqa
-obs_space = spaces.Box(low=-np.inf, high=np.inf, shape=(110,))  # 根据实际维度修改
-act_space = spaces.Box(low=-10000, high=10000, shape=(26,))  # 替换实际动作维度
-obs_dim = 110
-act_dim = 26
+obs_space = spaces.Box(low=-np.inf, high=np.inf, shape=(125,))  # 根据实际维度修改
+act_space = spaces.Box(low=-10000, high=10000, shape=(29,))  # 替换实际动作维度
+obs_dim = 125
+act_dim = 29
 # 定义与原始模型完全一致的网络结构
 class GaussianModel(GaussianMixin, Model):
     def __init__(self, observation_space, action_space, device, clip_actions,
@@ -77,7 +77,7 @@ config = {
 original_model = GaussianModel(**config)
 
 # 3. 加载预训练权重
-checkpoint = torch.load("/home/ma/Learning/IsaacLab/IsaacLab_qxj/logs/skrl/humanoid_amp_walk/2025-07-17_10-34-37_amp_torch/checkpoints/agent_100000.pt", weights_only=True)
+checkpoint = torch.load("/home/ma/Learning/IsaacLab/IsaacLab_qxj/logs/skrl/humanoid_amp_walk/2025-07-19_16-50-25_amp_torch/checkpoints/agent_145000.pt", weights_only=True)
 
 state_mean = checkpoint["state_preprocessor"]["running_mean"]
 state_variance = checkpoint["state_preprocessor"]["running_variance"]
@@ -122,7 +122,10 @@ with torch.no_grad():
          3.9641e-02, -1.2567e-01, -1.5399e-01, -6.7196e-01, -1.3325e-01,
          1.2926e-01, -7.6466e-01,  1.2926e-01, -7.6466e-01, -7.6466e-01,
          -7.8120e-02,  3.1711e-01,  2.4620e-01,  9.0132e-02, -2.5432e+00,
-         1.0967e-03, -2.7393e-01,  1.6434e-02,  2.5129e-02,  2.6620e-01]).to(config["device"])
+         1.0967e-03, -2.7393e-01,  1.6434e-02,  2.5129e-02,  2.6620e-01,
+         1.0967e-03, -2.7393e-01,  1.6434e-02,  2.5129e-02,  2.6620e-01,
+         3.9641e-02, -1.2567e-01, -1.5399e-01, -6.7196e-01, -1.3325e-01,
+         1.2926e-01, -7.6466e-01,  1.2926e-01, -7.6466e-01, -7.6466e-01]).to(config["device"])
     input_states = (dummy_input - state_mean.float().to(config["device"])) / torch.sqrt(state_variance.float().to(config["device"]) + 1e-8)
     # _ = original_model.compute({"states": dummy_input})
     # [ 0.1895, -0.2297, -0.3467, -0.1349,  0.0215, -0.3763,  0.3311,  0.3805,
@@ -151,7 +154,7 @@ example_input = torch.randn(1, obs_dim).to(config["device"])
 traced_model = torch.jit.trace(wrapped_model, example_input)
 
 # 6. 保存TorchScript模型
-traced_model.save("/home/ma/Learning/IsaacLab/IsaacLab_qxj/logs/skrl/humanoid_amp_walk/2025-07-17_10-34-37_amp_torch/checkpoints/exported/policy_amp_071702.pt")
+traced_model.save("/home/ma/Learning/IsaacLab/IsaacLab_qxj/logs/skrl/humanoid_amp_walk/2025-07-19_16-50-25_amp_torch/checkpoints/exported/policy_amp_072001.pt")
 # print("test")
 print("save: ",traced_model.forward(dummy_input))
 

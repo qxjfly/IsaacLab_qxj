@@ -342,6 +342,32 @@ def feet_step_knee(
 
     return reward * first_contact_flag * vel_mask
 
+def feet_step_ankle(
+    env: ManagerBasedRLEnv, 
+    sensor_cfg: SceneEntityCfg, 
+    asset_cfg: SceneEntityCfg, 
+    command_name: str,
+) -> torch.Tensor:
+    #**add
+    vel_temp = env.command_manager.get_command(command_name)[:, 0]
+    vel_mask = vel_temp > 0.1
+    # vel_mask = 1.0
+    #*****
+    asset = env.scene[asset_cfg.name]
+    contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
+    # compute the reward
+    first_air = contact_sensor.compute_first_air(env.step_dt)[:, sensor_cfg.body_ids]
+
+    first_air_flag = torch.logical_or(first_air[:, 0], first_air[:, 1])
+
+    ankle_pitch_angle = asset.data.joint_pos[:, asset_cfg.joint_ids]
+
+    ankle_pitch_angle_air = torch.sum(ankle_pitch_angle * first_air, dim=-1)
+
+    reward = torch.clamp(ankle_pitch_angle_air, max = 0.5)
+
+    return reward * first_air_flag * vel_mask
+
 def joint_torques_hip_roll_l2(
         env: ManagerBasedRLEnv, 
         asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:

@@ -92,7 +92,7 @@ class CR1BSRewards(RewardsCfg):
     joint_deviation_leg_yaw = RewTerm(
         func=mdp.joint_deviation_l1,
         weight=-0.1,
-        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_yaw_joint",".*_ankle_pitch_joint"])},
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_yaw_joint"])},
     )
     # 惩罚roll ankle关节 roll偏离默认值
     joint_deviation_ankle_roll = RewTerm(
@@ -101,10 +101,10 @@ class CR1BSRewards(RewardsCfg):
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_ankle_roll_joint"])},
     )
     # 惩罚roll ankle关节 roll偏离默认值
-    joint_deviation_hip_pitch = RewTerm(
+    joint_deviation_ankle_pitch = RewTerm(
         func=mdp.joint_deviation_l1,
-        weight=-0.02,
-        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_pitch_joint"])},
+        weight=-0.1,
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_ankle_pitch_joint"])},
     )
     
     #惩罚arm关节偏离默认值
@@ -207,6 +207,15 @@ class CR1BSRewards(RewardsCfg):
             "threshold": 0.05,
         },
     )
+    step_ankle = RewTerm(
+        func=mdp.feet_step_ankle,
+        weight=-2.5, 
+        params={
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_ankle_roll_link"),
+            "asset_cfg": SceneEntityCfg("robot", joint_names=".*_ankle_pitch_joint"),
+            "command_name": "base_velocity",
+        },
+    )
     #############################################################################
     #惩罚roll关节力矩法
     joint_hip_roll_torque_l2 = RewTerm(
@@ -223,7 +232,7 @@ class CR1BSRewards(RewardsCfg):
     joint_ankle_roll_torque_max = RewTerm(
         func=mdp.joint_torques_max,
         weight=-0.01,#  -4.0e-5
-        params={"threshold": 30,
+        params={"threshold": 25,
                 "asset_cfg": SceneEntityCfg("robot", joint_names=[".*_ankle_roll_joint"])},
     )
     joint_knee_torque_max = RewTerm(
@@ -268,10 +277,16 @@ class CR1BSRewards(RewardsCfg):
         func=mdp.joint_knee_pos_limit,
         weight=-2,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_knee_joint"]),
-                "max": 1.5,#1.6
+                "max": 1.5,#1.5
                 "min":-0.15},
     )
-
+    joint_ankle_pitch_pos_limit_l2 = RewTerm(
+        func=mdp.joint_knee_pos_limit,
+        weight=-2,
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_ankle_pitch_joint"]),
+                "max": 1.25,#1.6
+                "min":-0.4},
+    )
     #############################################################################
     # 奖励摆动腿在身体前方
     feet_swing_pos = RewTerm(

@@ -86,8 +86,8 @@ class HumanoidAmpEnv(DirectRLEnv):
         # key_body_names = ["right_hand", "left_hand", "right_foot", "left_foot"]
         # key_body_names = ["right_wrist_roll_link", "left_wrist_roll_link"]
         # key_body_names = ["right_wrist_roll_link", "left_wrist_roll_link","right_ankle_roll_link", "left_ankle_roll_link"]
-        key_body_names = ["right_elbow_pitch_link","left_elbow_pitch_link","right_wrist_roll_link", "left_wrist_roll_link", "right_knee_link","left_knee_link","right_ankle_roll_link","left_ankle_roll_link"]
-        key_body_names_motion = ["right_elbow_link","left_elbow_link","right_wrist_roll_link", "left_wrist_roll_link", "right_knee_link","left_knee_link","right_ankle_roll_link","left_ankle_roll_link"]
+        key_body_names = ["right_shoulder_pitch_link","left_shoulder_pitch_link","right_wrist_roll_link", "left_wrist_roll_link", "right_knee_link","left_knee_link","right_ankle_roll_link","left_ankle_roll_link"]
+        key_body_names_motion = ["right_shoulder_pitch_link","left_shoulder_pitch_link","right_wrist_roll_link", "left_wrist_roll_link", "right_knee_link","left_knee_link","right_ankle_roll_link","left_ankle_roll_link"]
         self.ref_body_index = self.robot.data.body_names.index(self.cfg.reference_body)
         self.key_body_indexes = [self.robot.data.body_names.index(name) for name in key_body_names]
         self.motion_dof_indexes = self._motion_loader.get_dof_index(self.robot.data.joint_names)
@@ -98,7 +98,7 @@ class HumanoidAmpEnv(DirectRLEnv):
         feet_body_names = ["left_ankle_roll_link", "right_ankle_roll_link"]
         self.feet_body_indexes = [self.robot.data.body_names.index(name) for name in feet_body_names]
         #qxj_add_deviation_joint
-        deviation_joint_names = ["left_hip_roll_joint", "right_hip_roll_joint", "left_hip_yaw_joint", "right_hip_yaw_joint", "left_ankle_roll_joint", "right_ankle_roll_joint"]
+        deviation_joint_names = ["waist_roll_joint","waist_pitch_joint","left_hip_roll_joint", "right_hip_roll_joint", "left_hip_yaw_joint", "right_hip_yaw_joint", "left_ankle_roll_joint", "right_ankle_roll_joint"]
         self.deviation_joint_indexes = [self.robot.data.joint_names.index(name) for name in deviation_joint_names]
         #qxj_add_undesired_contact_body_id
         undesired_contact_body_names = ["left_wrist_roll_link", "right_wrist_roll_link"]
@@ -241,6 +241,7 @@ class HumanoidAmpEnv(DirectRLEnv):
         feet_slide_rew = torch.sum(feet_vel_w.norm(dim=-1) * feet_contact_flag, dim=1)
         # flat orientation
         flat_orientation_rew = torch.sum(torch.square(self.robot.data.projected_gravity_b[:, :2]), dim=1)
+        # flat_orientation_rew = torch.sum(torch.square(self.robot.data.projected_gravity_b[:, :2]), dim=1)
         #termination penalty
         termination_rew = self.reset_terminated.float()
         #deviation from default
@@ -305,7 +306,7 @@ class HumanoidAmpEnv(DirectRLEnv):
         self.robot.write_root_com_velocity_to_sim(root_state[:, 7:], env_ids)
         self.robot.write_joint_state_to_sim(joint_pos, joint_vel, None, env_ids)
         #qxj_add_commands_reset
-        self._commands[env_ids] = torch.zeros_like(self._commands[env_ids]).uniform_(0.6, 1.3)
+        self._commands[env_ids] = torch.zeros_like(self._commands[env_ids]).uniform_(0.8, 1.5)
         #qxj_add_actions_reset
         self.actions[env_ids] = 0.0
         self.previous_actions[env_ids] = 0.0
