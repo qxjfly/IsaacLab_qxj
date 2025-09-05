@@ -1,0 +1,109 @@
+git add .
+git commit -m "20250317"
+git pull upstream main 拉取
+git push origin main 推送
+
+ 
+urdf2usd
+python scripts/tools/convert_urdf.py '/home/user/learning/isaaclab_all/IsaacLab_qxj/Robots_usd/CRB0/CRB0_21_q.urdf' /home/user/learning/isaaclab_all/IsaacLab_qxj/Robots_usd/CRB0_21usd_0905/CRB0_21usd_0905.usd --merge-joints
+
+创建空环境
+./isaaclab.sh -p scripts/tutorials/00_sim/create_empty.py
+
+
+conda activate q_isaaclab
+0/cd source/isaaclab_tasks/isaaclab_tasks/direct/humanoid_amp/motions/ + python motion_viewer.py --file humanoid_run.npz
+1/./isaaclab.sh -p scripts/reinforcement_learning/skrl/train.py --task Isaac-Humanoid-AMP-Run-Direct-v0 --algorithm AMP
+2/./isaaclab.sh -p scripts/reinforcement_learning/skrl/play.py --task Isaac-Humanoid-AMP-Run-Direct-v0 --num_envs 16 --algorithm AMP --checkpoint /home/ma/Learning/IsaacLab/IsaacLab_qxj/logs/skrl/humanoid_amp_run/2025-03-24_18-49-46_amp_torch/checkpoints/best_agent.pt --real-time
+
+
+Resume
+./isaaclab.sh -p scripts/reinforcement_learning/rsl_rl/train.py --task Isaac-Velocity-Flat-CR1BS-v0 --resume true --load_run 2025-07-01_17-12-56 --checkpoint model_2000.pt
+
+Play
+./isaaclab.sh -p scripts/reinforcement_learning/rsl_rl/play.py --task Isaac-Velocity-Flat-CR1BS-Play-v0 --num_envs 16 --checkpoint /home/user/learning/isaaclab_all/IsaacLab_qxj/logs/rsl_rl/cr1bs_flat/2025-09-05_15-55-04/model_2000.pt
+
+tensor board  :  tensorboard --logdir=./
+
+scp:
+scp ./policy_09051.pt  ma@10.42.0.1:/home/ma/Sim2Sim/bitbot-mujoco-CR01A/policy/0903
+
+left_hip_pitch 0
+left_shoulder_pitch 1
+right_hip_pitch 2
+right_shoulder_pitch 3
+left_hip_roll 4
+left_shoulder_roll 5
+right_hip_roll 6
+right_shoulder_roll 7
+left_hip_yaw 8
+left_shoulder_yaw 9
+right_hip_yaw 10
+right_shoulder_yaw 11
+left_knee 12
+left_elbow_pitch 13 //5
+right_knee 14
+right_elbow_pitch 15 //7
+left_ankle_pitch 16
+left_wrist_yaw 17
+right_ankle_pitch 18
+right_wrist_yaw 19
+left_ankle_roll 20
+left_wrist_pitch 21
+right_ankle_roll 22
+right_wrist_pitch 23
+left_wrist_roll 24
+right_wrist_roll 25
+
+
+CRB1
+left_hip_pitch_joint 0 
+right_hip_pitch_joint 1
+waist_yaw_joint 2
+
+left_hip_roll_joint 3
+right_hip_roll_joint 4
+waist_roll_joint 5
+
+left_hip_yaw_joint 6
+right_hip_yaw_joint 7
+waist_pitch_joint 8
+
+left_knee_joint 9
+right_knee_joint 10
+left_shoulder_pitch_joint 11
+right_shoulder_pitch_joint 12
+
+left_ankle_pitch_joint 13
+right_ankle_pitch_joint 14
+left_shoulder_roll_joint 15
+right_shoulder_roll_joint 16
+
+left_ankle_roll_joint 17
+right_ankle_roll_joint 18
+left_shoulder_yaw_joint 19
+right_shoulder_yaw_joint 20
+
+left_elbow_pitch_joint 21
+right_elbow_pitch_joint 22
+
+left_wrist_yaw_joint 23
+right_wrist_yaw_joint 24
+
+left_wrist_pitch_joint 25
+right_wrist_pitch_joint 26
+
+left_wrist_roll_joint 27
+right_wrist_roll_joint 28
+
+['left_hip_pitch_joint', 'right_hip_pitch_joint', 'waist_yaw_joint', 
+'left_hip_roll_joint', 'right_hip_roll_joint', 'waist_roll_joint', 
+'left_hip_yaw_joint', 'right_hip_yaw_joint', 'waist_pitch_joint', 
+'left_knee_joint', 'right_knee_joint', 'left_shoulder_pitch_joint', 'right_shoulder_pitch_joint', 
+'left_ankle_pitch_joint', 'right_ankle_pitch_joint', 'left_shoulder_roll_joint', 'right_shoulder_roll_joint', 
+'left_ankle_roll_joint', 'right_ankle_roll_joint', 'left_shoulder_yaw_joint', 'right_shoulder_yaw_joint', 
+'left_elbow_pitch_joint', 'right_elbow_pitch_joint', 
+'left_wrist_yaw_joint', 'right_wrist_yaw_joint', 
+'left_wrist_pitch_joint', 'right_wrist_pitch_joint', 
+'left_wrist_roll_joint', 'right_wrist_roll_joint']
+

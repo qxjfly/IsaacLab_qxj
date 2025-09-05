@@ -1,0 +1,5 @@
+更换hip_roll关节后：
+变更了hip_pitch_link的质量和惯量及质心分布
+变更了hip_roll_link的质量和惯量及质心分布
+变更了hip_roll_joint关节的力矩及转速限制
+变更了ankle_roll_link的碰撞模型，脚变小并增加前后弧度碰撞
