@@ -5,7 +5,7 @@ git push origin main 推送
 
  
 urdf2usd
-python scripts/tools/convert_urdf.py '/home/ma/Learning/IsaacLab/IsaacLab_qxj/Robots_usd/K188/urdf/K188.urdf' /home/ma/Learning/IsaacLab/IsaacLab_qxj/Robots_usd/usd_sideflip/K188qxj.usd --merge-joints
+python scripts/tools/convert_urdf.py '/home/ma/Learning/IsaacLab/IsaacLab_qxj/Robots_usd/CRB0/CRB0_21.urdf' /home/ma/Learning/IsaacLab/IsaacLab_qxj/Robots_usd/CRB_21newusd/CRB_21new.usd --merge-joints
 
 创建空环境
 ./isaaclab.sh -p scripts/tutorials/00_sim/create_empty.py
@@ -19,6 +19,9 @@ conda activate q_isaaclab
 
 Resume
 ./isaaclab.sh -p scripts/reinforcement_learning/rsl_rl/train.py --task Isaac-Velocity-Flat-CR1BS-v0 --resume true --load_run 2025-07-01_17-12-56 --checkpoint model_2000.pt
+./isaaclab.sh -p scripts/reinforcement_learning/rsl_rl/train.py --task Isaac-Velocity-Flat-CR1BS-v0 --resume true --load_run 2025-07-29_10-10-42 --checkpoint model_20000.pt
+play:
+./isaaclab.sh -p scripts/reinforcement_learning/rsl_rl/play.py --task Isaac-Velocity-Flat-CR1BS-Play-v0 --num_envs 16 --checkpoint /home/ma/Learning/IsaacLab/IsaacLab_qxj/logs/rsl_rl/cr1bs_flat/2025-07-10_22-12-46/model_30000.pt
 
 tensor board  :  tensorboard --logdir=./
 

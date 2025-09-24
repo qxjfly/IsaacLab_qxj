@@ -370,14 +370,16 @@ def feet_step_ankle(
 
 def joint_torques_hip_roll_l2(
         env: ManagerBasedRLEnv, 
+        command_name: str,
         asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
     """Penalize joint torques applied on the articulation using L2 squared kernel.
 
     NOTE: Only the joints configured in :attr:`asset_cfg.joint_ids` will have their joint torques contribute to the term.
     """
     asset: Articulation = env.scene[asset_cfg.name]
-
-    return torch.sum(torch.square(asset.data.applied_torque[:, asset_cfg.joint_ids]), dim=1)
+    vel_temp = torch.norm(env.command_manager.get_command(command_name)[:, :3], dim=1)
+    vel_mask = vel_temp <= 0.1
+    return torch.sum(torch.square(asset.data.applied_torque[:, asset_cfg.joint_ids]), dim=1)*vel_mask
 def joint_torques_max(
         env: ManagerBasedRLEnv, 
         threshold: float,

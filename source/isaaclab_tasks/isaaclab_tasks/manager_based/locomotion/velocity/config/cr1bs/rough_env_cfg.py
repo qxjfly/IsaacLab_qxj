@@ -82,11 +82,17 @@ class CR1BSRewards(RewardsCfg):
     )
 
 
-    # 惩罚hip关节roll yaw ankle关节 roll偏离默认值
+    # 惩罚hip关节roll yaw ankle关节 roll偏离默认值 
     joint_deviation_leg_roll = RewTerm(
         func=mdp.joint_deviation_l1,
         weight=-0.1,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_roll_joint"])},
+    )
+    joint_deviation_leg_roll_stand = RewTerm(
+        func=mdp.joint_deviation_hiproll_l1,
+        weight=-0.1,
+        params={"command_name": "base_velocity",
+                "asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_roll_joint"])},
     )
     # 惩罚hip关节roll yaw ankle关节 roll偏离默认值
     joint_deviation_leg_yaw = RewTerm(
@@ -221,12 +227,13 @@ class CR1BSRewards(RewardsCfg):
     joint_hip_roll_torque_l2 = RewTerm(
         func=mdp.joint_torques_hip_roll_l2,
         weight=-3.0e-5,#  -4.0e-5
-        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_roll_joint"])},
+        params={"command_name": "base_velocity",
+                "asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_roll_joint"])},
     )
     joint_hip_roll_torque_max = RewTerm(
         func=mdp.joint_torques_max,
         weight=-0.01,#  -4.0e-5
-        params={"threshold": 90,
+        params={"threshold": 150,
                 "asset_cfg": SceneEntityCfg("robot", joint_names=[".*_hip_roll_joint"])},
     )
     joint_ankle_roll_torque_max = RewTerm(
@@ -251,7 +258,8 @@ class CR1BSRewards(RewardsCfg):
     joint_knee_torque_l2 = RewTerm(
         func=mdp.joint_torques_hip_roll_l2,
         weight=-8.0e-6,#  -4.0e-5
-        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_ankle_roll_joint"])},
+        params={"command_name": "base_velocity",
+                "asset_cfg": SceneEntityCfg("robot", joint_names=[".*_ankle_roll_joint"])},
         # params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*_knee_joint"])},
     )
 
@@ -611,8 +619,12 @@ class CR1BSRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
         self.scene.height_scanner.prim_path = "{ENV_REGEX_NS}/Robot/base_link" #高度观测器的 base_link
 
         # Randomization
-        # self.events.push_robot = None
+        # self.events.physics_material = None
         # self.events.add_base_mass = None
+        # self.events.base_com = None
+        # self.events.joint_pd_randomization = None
+        # self.events.push_robot = None
+        
         self.events.reset_robot_joints.params["position_range"] = (1.0, 1.0)
         self.events.base_external_force_torque.params["asset_cfg"].body_names = ["base_link"]
         self.events.reset_base.params = {

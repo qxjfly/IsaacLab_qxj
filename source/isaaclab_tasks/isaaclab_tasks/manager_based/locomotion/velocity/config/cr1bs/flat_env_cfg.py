@@ -119,17 +119,18 @@ class CR1BSFlatEnvCfg(CR1BSRoughEnvCfg):
         #******************************
         # robot_base
         self.rewards.track_lin_vel_xy_exp.weight = 1.5 #
-        self.rewards.track_ang_vel_z_exp.weight = 1.3 #
-        self.rewards.lin_vel_z_l2.weight = -0.2
-        self.rewards.ang_vel_xy_l2.weight = -2.0 #-2.0 #-0.5
-        self.rewards.flat_orientation_l2.weight = -6.0 # -5.0
+        self.rewards.track_ang_vel_z_exp.weight = 1.35 #1.3 917
+        self.rewards.lin_vel_z_l2.weight = -0.2 
+        self.rewards.ang_vel_xy_l2.weight = -4.0 #-2.0  0917
+        self.rewards.flat_orientation_l2.weight = -5.0 # -5.0
         self.rewards.root_height.weight = 1.25# # 1.0
         self.rewards.root_height.params["threshold"] = 0.88 #default 0.85
-        self.rewards.body_ang_vel_xy_l2.weight = -0.5
+        self.rewards.body_ang_vel_xy_l2.weight = -1.5 #-0.5 0917
         # Joint deviation
         self.rewards.joint_deviation_leg_yaw.weight = -0.7  # default -0.5  hip:yaw roll && ankle: roll
-        self.rewards.joint_deviation_leg_roll.weight = -1.0 # default -0.5 
-        self.rewards.joint_deviation_ankle_roll.weight = -1.2# default -1.0 
+        self.rewards.joint_deviation_leg_roll.weight = -1.0 # default -0.5
+        self.rewards.joint_deviation_leg_roll_stand.weight = -30.0 #-42
+        self.rewards.joint_deviation_ankle_roll.weight = -1.2 # default -1.0 
         self.rewards.joint_deviation_ankle_pitch.weight = -0.5 #-0.02
         self.rewards.joint_deviation_arms.weight = -0.2 #
         self.rewards.joint_deviation_torso.weight = -1.0 #-0.5 
@@ -143,42 +144,29 @@ class CR1BSFlatEnvCfg(CR1BSRoughEnvCfg):
         self.rewards.joint_ankle_roll_torque_max.weight = -0.025
         self.rewards.joint_knee_torque_max.weight = -0.015
         self.rewards.joint_ankle_pitch_torque_max.weight = -0.015
-        self.rewards.joint_hip_roll_torque_l2.weight = 0.0 #-6.0e-5 #-3.0e-5
+        self.rewards.joint_hip_roll_torque_l2.weight = -8.0e-5
         self.rewards.joint_knee_torque_l2.weight = 0.0 #-1.0e-5 #-3.0e-5 #-6.0e-5 # knee default -8.0e-6
         # Joint action
-        self.rewards.action_rate_l2.weight = -0.08 #-0.1 #-0.005 #-0.1
-        self.rewards.dof_acc_l2.weight = -7.0e-7 # default-1.0e-6
+        self.rewards.action_rate_l2.weight = -0.1 #-0.08 #-0.1 #-0.005 #-0.1
+        self.rewards.dof_acc_l2.weight = -1.0e-6 #-7.0e-7 # default-1.0e-6
         # lowvel
-        self.rewards.joint_deviation_zero_lowvel.weight = -3.0 #-1.0 #-0.1 #-0.5
+        self.rewards.joint_deviation_zero_lowvel.weight = -1.0 #-3.0 #-1.0 #-0.1 #-0.5
         self.rewards.feet_both_air.weight = -5
         
         # Arm swing rewards
-        # self.rewards.reward_swing_arm_tracking.weight = 0.5 #0.5
         self.rewards.joint_coordination_larm_leg.weight = -0.5 #0.5
         self.rewards.joint_coordination_larm_leg.params["ratio"]=1.0
         self.rewards.joint_coordination_rarm_leg.weight = -0.5 #0.5
         self.rewards.joint_coordination_rarm_leg.params["ratio"]=1.0
+
         #walk phase
-        # #Gait related rewards
-        # self.rewards.feet_slide.weight = 0 #qxj
-        # self.rewards.feet_air_time.weight = 0 #1.75 #default 1.75
-        # self.rewards.feet_air_time.params["threshold"] = 0.4 #default 0.45s
-        # self.rewards.feet_air_height.weight = 0
-        # self.rewards.feet_air_height.params["threshold"] = 0.15 #default 0.12
-        # # Joint action
-        # self.rewards.dof_torques_l2.weight = 0
-        # self.rewards.dof_torques_l2.params["asset_cfg"] = SceneEntityCfg(
-        #     "robot", joint_names=[".*_hip_.*", ".*_knee_joint", ".*_ankle_.*"]
-        # )
-        # # Joint limits
-        # self.rewards.joint_knee_pos_limit_l2.weight = 0.0
         #Gait related rewards
         self.rewards.feet_slide.weight = -0.25 #-0.25 #-0.25 #qxj
         self.rewards.feet_air_time.weight = 1.5 #1.75 #default 1.75
         self.rewards.feet_air_time.params["threshold"] = 0.55 # 0.45 #default 0.45s
-        self.rewards.feet_air_height.weight = 0.3 # 0.35  0.3
+        self.rewards.feet_air_height.weight = 0.25 # 0.3  0.35
         self.rewards.feet_air_height.params["threshold"] = 0.12 #0.12 #default 0.12
-        self.rewards.step_knee.weight = -8 #-8 #default -5  -8  -10
+        self.rewards.step_knee.weight = -10 #-8 #default -5  -8  -10
         self.rewards.step_ankle.weight = 5 #-8 #default -5  -8  -10
         # 增加了ankle_pitch的塑形
         # 增加了vel_lowvel的惩罚
@@ -202,17 +190,17 @@ class CR1BSFlatEnvCfg(CR1BSRoughEnvCfg):
         #joint limit
         self.rewards.knee_dof_acc_l2.weight = 0.0 #-2.0e-6 #-1.0e-5 #-2.0e-6
         #lowel
-        self.rewards.feet_air_height_lowvel.weight = -50 #-5 前期鼓励踏步 惩罚较小
+        self.rewards.feet_air_height_lowvel.weight = -15 #-5 前期鼓励踏步 惩罚较小
         #None
         
         #Gait
         self.rewards.joint_parallel_ankle_pitch.weight = 0.0 #-0.08
         self.rewards.feet_step_current_airtime.params["threshold"] = 0.7 #0.65 #default 0.55
-        # self.rewards.reward_no_double_feet_air.weight = -1.0
         self.rewards.distance_feet.weight = 0.0 #-0.85 #
-        # self.rewards.reward_feet_contact_forces.weight = 0.08 #F1_reward
-        # self.rewards.reward_feet_contact_forces.weight = -0.01 #F2_reward
-        # self.rewards.reward_feet_contact_forces.params["force_thresh"] = 880 
+
+
+
+        
         #*******************************
         # robot_base
         # self.rewards.track_lin_vel_xy_exp.weight = 1.25 #1.75 #qxj
@@ -296,6 +284,7 @@ class CR1BSFlatEnvCfg_PLAY(CR1BSFlatEnvCfg):
         self.scene.env_spacing = 2.5
         #commands
         self.commands.base_velocity.ranges.lin_vel_x = (-0.8, 1.2)
+        # self.commands.base_velocity.ranges.lin_vel_x = (0.0,0.0)
         self.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
         self.commands.base_velocity.ranges.ang_vel_z = (0.0, 0.0)
         # disable randomization for play

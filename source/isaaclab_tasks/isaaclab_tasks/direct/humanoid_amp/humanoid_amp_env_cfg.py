@@ -59,7 +59,7 @@ class HumanoidAmpEnvCfg(DirectRLEnvCfg):
     motion_file: str = MISSING #
     reference_body = "base_link" #"pelvis" #"torso"  usd中的base_link的name
     reference_bodym = "base_link" #"base_link" K188usd  motion_file中base_link的name
-    reset_strategy = "random"  # default, random, random-start
+    reset_strategy = "default"  # default, random, random-start
     """Strategy to be followed when resetting each environment (humanoid's pose and joint states).
 
     * default: pose and joint states are set to the initial state of the asset.

@@ -107,7 +107,7 @@ class CommandsCfg:
     base_velocity = mdp.UniformVelocityCommandCfg(
         asset_name="robot",
         resampling_time_range=(10.0, 10.0),
-        rel_standing_envs=0.02,
+        rel_standing_envs=0.06,#0.02
         rel_heading_envs=1.0,
         heading_command=True,
         heading_control_stiffness=0.5,
@@ -258,7 +258,7 @@ class EventCfg:
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
-            "static_friction_range": (0.8, 1.0),#0.8 0.8
+            "static_friction_range": (0.7, 0.9),#0.8 0.8
             "dynamic_friction_range": (0.6, 0.8),#0.6 0.6
             "restitution_range": (0.0, 0.0),
             "num_buckets": 64,
@@ -276,22 +276,43 @@ class EventCfg:
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names="waist_yaw_link"),
-            "mass_distribution_params": (0.0, 4.0),
+            "mass_distribution_params": (0.0, 10.0),
             # "mass_distribution_params": (-1.5, 4.0),
             "operation": "add",
         },
     )
+
+    # add_body_mass = EventTerm(
+    #     func=mdp.randomize_rigid_body_mass,
+    #     mode="startup",
+    #     params={
+    #         "asset_cfg": SceneEntityCfg("robot", body_names="body_link"),
+    #         "mass_distribution_params": (0.0, 4.0),
+    #         # "mass_distribution_params": (-1.5, 4.0),
+    #         "operation": "add",
+    #     },
+    # )
 
     base_com = EventTerm(
         func=mdp.randomize_rigid_body_com,
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names="waist_yaw_link"),
-            "com_range": {"x": (-0.025, 0.025), "y": (-0.02, 0.02), "z": (-0.01, 0.05)},
+            "com_range": {"x": (-0.05, 0.1), "y": (-0.02, 0.02), "z": (-0.08, 0.08)},
+            # "com_range": {"x": (-0.05, 0.05), "y": (-0.02, 0.02), "z": (0.15, 0.25)},
             # "com_range": {"x": (-0.05, 0.05), "y": (-0.05, 0.05), "z": (-0.05, 0.05)},
         },
     )
 
+    # base_com = EventTerm(
+    #     func=mdp.randomize_rigid_body_com,
+    #     mode="startup",
+    #     params={
+    #         "asset_cfg": SceneEntityCfg("robot", body_names="body_link"),
+    #         "com_range": {"x": (-0.05, 0.05), "y": (-0.02, 0.02), "z": (0.05, 0.12)},
+    #         # "com_range": {"x": (-0.05, 0.05), "y": (-0.05, 0.05), "z": (-0.05, 0.05)},
+    #     },
+    # )
     # scale_all_joint_armature = EventTerm(
     #     func=mdp.randomize_joint_parameters,
     #     mode="startup",
@@ -366,7 +387,7 @@ class EventCfg:
         func=mdp.push_by_setting_velocity,
         mode="interval",
         interval_range_s=(8.0, 12.0),
-        params={"velocity_range": {"x": (-0.2, 0.2), "y": (-0.2, 0.2)}},
+        params={"velocity_range": {"x": (-0.5, 0.5), "y": (-0.5, 0.5)}},
     )
 
 
@@ -428,7 +449,7 @@ class TerminationsCfg:
         func=mdp.illegal_height,
         params={"asset_cfg": SceneEntityCfg("robot", body_names="base_link"),
                 "command_name": "base_velocity",
-                 "threshold": 0.84},
+                 "threshold": 0.855},#0.84
     )
     # knee_torque = DoneTerm(
     #     func=mdp.illegal_torque,
@@ -447,8 +468,8 @@ class CurriculumCfg:
     #                                      "starting_step": 1500 * 24})
     # command vel follows curriculum
     command_vel = CurrTerm(func=mdp.modify_command_velocity,
-                           params={"term_name": "track_lin_vel_xy_exp", "max_velocity": [-0.8, 1.5],
-                                   "interval": 1000 * 24, "starting_step": 2000 * 24})
+                           params={"term_name": "track_lin_vel_xy_exp", "max_velocity": [-0.8, 1.2],
+                                   "interval": 100 * 24, "starting_step": 100 * 24})
     
     # modify_reward_weight = CurrTerm(func=mdp.modify_reward_weight,
     #                        params={"term_name": "step_knee2",

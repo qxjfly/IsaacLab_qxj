@@ -750,7 +750,8 @@ CR01B_amp_CFG = CR01B_CFG.copy()
 ################################
 CR01BS_CFG = ArticulationCfg(
     spawn=sim_utils.UsdFileCfg(
-        usd_path="/home/ma/Learning/IsaacLab/IsaacLab_qxj/Robots_usd/CRB0_21usd/CRB0_21.usd",
+        usd_path="/home/ma/Learning/IsaacLab/IsaacLab_qxj/Robots_usd/CRB_21newusd/CRB_21new.usd",
+        # usd_path="/home/ma/Learning/IsaacLab/IsaacLab_qxj/Robots_usd/CRB0_21usd/CRB0_21.usd",
         activate_contact_sensors=True,
         rigid_props=sim_utils.RigidBodyPropertiesCfg(
             disable_gravity=False,
@@ -766,7 +767,7 @@ CR01BS_CFG = ArticulationCfg(
         ),#enabled_self_collisions=False  #default is False
     ),
     init_state=ArticulationCfg.InitialStateCfg(
-        pos=(0.0, 0.0, 0.9),
+        pos=(0.0, 0.0, 0.95),#0.85
         joint_pos={
             ".*_hip_pitch_joint": -0.0,
             ".*_knee_joint": 0.0,
@@ -790,16 +791,16 @@ CR01BS_CFG = ArticulationCfg(
             ],
             effort_limit_sim={
                 ".*_hip_yaw_joint": 120.0,
-                ".*_hip_roll_joint": 107.0,
+                ".*_hip_roll_joint": 400,#107.0,
                 ".*_hip_pitch_joint": 400.0,
                 ".*_knee_joint": 400.0,
             },
             velocity_limit_sim=20.0,
             stiffness={
-                ".*_hip_yaw_joint": 150.0,
-                ".*_hip_roll_joint": 150.0,
-                ".*_hip_pitch_joint": 200.0,
-                ".*_knee_joint": 200.0,
+                ".*_hip_yaw_joint": 150.0,#150
+                ".*_hip_roll_joint": 150.0,#200
+                ".*_hip_pitch_joint": 200.0,#200
+                ".*_knee_joint": 200.0,#200
             },
             damping={
                 ".*_hip_yaw_joint": 3.0,
@@ -820,8 +821,8 @@ CR01BS_CFG = ArticulationCfg(
             },
             velocity_limit_sim=20.0,
             stiffness={
-                ".*_ankle_pitch_joint": 100.0, #30 #150
-                ".*_ankle_roll_joint": 50.0, #20 #80
+                ".*_ankle_pitch_joint": 100.0, #100
+                ".*_ankle_roll_joint": 50.0, #50
             },
             damping={
                 ".*_ankle_pitch_joint": 2.0, #1 #2

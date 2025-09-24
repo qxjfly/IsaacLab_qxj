@@ -41,7 +41,7 @@ class CR1BSFlatPPORunnerCfg(CR1BSRoughPPORunnerCfg):
     def __post_init__(self):
         super().__post_init__()
 
-        self.max_iterations = 50000
+        self.max_iterations = 50001
         self.experiment_name = "cr1bs_flat"
         self.policy.actor_hidden_dims = [256, 128, 128]
         self.policy.critic_hidden_dims = [256, 128, 128]
